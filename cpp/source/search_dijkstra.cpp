@@ -25,7 +25,7 @@ std::vector<long> Dijkstra::PathFinding(long vs, long vg, double time_limit, sho
 	_vg = vg;
   _time_limit = time_limit;
 	_search();
-	return GetPath(vg);
+  return GetPath(vg);
 };
 
 int Dijkstra::ExhaustiveBackwards(long vg, double time_limit, short cdim) {
@@ -83,6 +83,8 @@ int Dijkstra::_search() {
 
   _init_more();
 
+  int success = 0;
+
   // main search loop
   while(!_open.empty()){
 
@@ -104,6 +106,7 @@ int Dijkstra::_search() {
 
     // check goal
     if (_mode == 0 && v == _vg) {
+      success = 1;
     	break; // termination
     }
 
@@ -149,7 +152,7 @@ int Dijkstra::_search() {
     }// end for
   }// end while
   
-  return 1;
+  return success;
 };
 
 void Dijkstra::_add_open(long u, double dist_u) {
@@ -162,11 +165,12 @@ void Dijkstra::_init_more() {
 };
 
 std::vector<long> Dijkstra::GetPath(long v, bool do_reverse) {
+  std::cout << " .s.s.s. GetPath v = " << v << std::endl;
   std::vector<long> out;
-  out.push_back(v);
-  if (_parent.size() == 0){
-    return std::vector<long>() ;
+  if ((_parent.size() == 0) || (_parent.size() <= v) ){
+    return out ;
   }
+  out.push_back(v);
   while( _parent[v] != -1 ) {
     out.push_back(_parent[v]);
     v = _parent[v];

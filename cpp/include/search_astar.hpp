@@ -31,6 +31,10 @@ public:
 	 *
 	 */
 	virtual ~Astar() ;
+	/**
+	 *
+	 */
+	virtual void SetHeuWeight(double w) ;
 
 protected:
 	/**
@@ -41,6 +45,8 @@ protected:
 	 *
 	 */
 	virtual void _add_open(long u, double dist_u) ;
+
+	double _wh = 1.0;
 };
 
 /**

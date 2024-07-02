@@ -13,6 +13,7 @@
 #include <iostream>
 // #include "cost_vector.hpp"
 #include "vec_type.hpp"
+#include "type_def.hpp"
 
 namespace raplab{
 
@@ -54,15 +55,15 @@ public:
   /**
    * @brief
    */
-  virtual std::vector<double> GetCost(long u, long v) = 0;
+  virtual CostVec GetCost(long u, long v) = 0;
   /**
    * @brief 
    */
-  virtual std::vector< std::vector<double> > GetSuccCosts(long u) = 0;
+  virtual std::vector< CostVec > GetSuccCosts(long u) = 0;
   /**
    * @brief 
    */
-  virtual std::vector< std::vector<double> > GetPredCosts(long u) = 0;
+  virtual std::vector< CostVec > GetPredCosts(long u) = 0;
   /**
    * @brief
    */
@@ -118,15 +119,15 @@ public:
   /**
    * @brief Not recommended. For better performance, use GetSuccCosts and GetPredCosts instead.
    */
-  virtual std::vector<double> GetCost(long u, long v) override ;
+  virtual CostVec GetCost(long u, long v) override ;
   /**
    * @brief a vector of all successor costs
    */
-  virtual std::vector< std::vector<double> > GetSuccCosts(long u) override ;
+  virtual std::vector< CostVec > GetSuccCosts(long u) override ;
   /**
    * @brief a vector of all predecessor costs
    */
-  virtual std::vector< std::vector<double> > GetPredCosts(long u) override ;
+  virtual std::vector< CostVec > GetPredCosts(long u) override ;
   /**
    * @brief 
    */  
@@ -246,15 +247,15 @@ public:
   /**
    * @brief Not recommended. For better performance, use GetSuccCosts and GetPredCosts instead.
    */
-  virtual std::vector<double> GetCost(long u, long v) override ;
+  virtual CostVec GetCost(long u, long v) override ;
   /**
    * @brief
    */
-  virtual std::vector< std::vector<double> > GetSuccCosts(long u) override ;
+  virtual std::vector< CostVec > GetSuccCosts(long u) override ;
   /**
    * @brief 
    */
-  virtual std::vector< std::vector<double> > GetPredCosts(long u) override ;
+  virtual std::vector< CostVec > GetPredCosts(long u) override ;
   /**
    * @brief 
    */  
@@ -284,6 +285,10 @@ public:
    */
   virtual void SetOccuGridPtr(std::vector< std::vector<double> >*) ;
   /** 
+   * @brief 
+   */
+  virtual std::vector< std::vector<double> >* GetOccuGridPtr() ;
+  /** 
    * @brief For pybind11.
    */
   virtual void SetOccuGridObject(std::vector< std::vector<double> >&) ;
@@ -291,11 +296,14 @@ public:
    * @brief Return if a given vertex (row, col) is inside the rectangular grid.
    */
   virtual bool IsWithinBorder(long row, long col) ;
-
   /**
    * @brief 
    */
   virtual bool SetKNeighbor(int kngh) ;
+  /** 
+   * @brief
+   */
+  virtual void SetCostScaleFactor(const double) ;
   /**
    * @brief 
    */
@@ -316,6 +324,103 @@ protected:
   int _kngh;
   std::vector<long> _act_r;
   std::vector<long> _act_c;
+  double _cost_scale = 1.0;
+};
+
+
+/**
+ * @brief
+ */
+class HybridGraph2d : public PlannerGraph
+{
+public:
+  /**
+   *
+   */
+  HybridGraph2d();
+  /**
+   *
+   */
+  virtual ~HybridGraph2d();
+  /**
+   * @brief
+   */
+  virtual bool HasVertex(long v) override ;
+  /**
+   * @brief
+   */
+  virtual bool HasArc(long v, long u) override ;
+  /**
+   * @brief return successors of node v
+   */
+  virtual std::vector<long> GetSuccs(long v) override ;
+  /**
+   * @brief return predecessors of node v
+   */
+  virtual std::vector<long> GetPreds(long v) override ;
+  /**
+   * @brief Not recommended. For better performance, use GetSuccCosts and GetPredCosts instead.
+   */
+  virtual CostVec GetCost(long u, long v) override ;
+  /**
+   * @brief
+   */
+  virtual std::vector< CostVec > GetSuccCosts(long u) override ;
+  /**
+   * @brief 
+   */
+  virtual std::vector< CostVec > GetPredCosts(long u) override ;
+  /**
+   * @brief 
+   */  
+  virtual size_t NumVertex() override ;
+  /**
+   * @brief 
+   */  
+  virtual size_t NumArc() override ;
+  /**
+   * @brief only meaningful for undirected graph. it is the same as NumArc()/2. 
+   */  
+  virtual size_t NumEdge() override ;
+  /**
+   * @brief 
+   */  
+  virtual size_t CostDim() override ;
+  /**
+   * @brief 
+   */  
+  virtual std::vector<long> AllVertex() override ;
+  /**
+   *
+   */
+  virtual void AddGrid2d(Grid2d* g) ;
+  /**
+   *
+   */
+  virtual void AddSparseGraph(SparseGraph* g) ;
+  /**
+   *
+   */
+  virtual void AddExtraEdge(long u, long v, CostVec c) ;
+
+protected:
+  /**
+   *
+   */
+  virtual int _find_subgraph(long v);
+  /**
+   *
+   */
+  virtual long _g2l_nid(long v);
+
+  std::vector< Grid2d* > _grids;
+  std::vector< SparseGraph* > _roadmaps;
+  std::vector< long > _nid_starts;
+  std::vector< long > _nid_ends;
+  std::vector< int > _index_map; // positive are grids, negative are roadmaps
+  std::vector< long > _ig_arc_srcs; // ig = inter-graph
+  std::vector< long > _ig_arc_tgts;
+  std::vector< CostVec > _ig_costs;
 };
 
 // /**

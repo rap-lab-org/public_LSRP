@@ -23,9 +23,17 @@ double Astar::_heuristic(long v) {
 };
 
 void Astar::_add_open(long u, double dist_u) {
-  auto f = dist_u + _heuristic(u);
+  double f = dist_u + _wh*_heuristic(u);
   auto temp_pair = std::make_pair(f,u);
   _open.insert(temp_pair); // re-insert
+};
+
+void Astar::SetHeuWeight(double w) {
+  if (w < 1.0){
+    std::cout << "[ERROR] Astar::SetHeuWeight w = " << w << " < 1 !!!" << std::endl;
+    throw std::runtime_error("[ERROR]");
+  }
+  _wh = w;
 };
 
 

@@ -39,7 +39,7 @@ std::vector<long> SparseGraph::GetPreds(long v) {
   return _from[v];
 };
 
-std::vector<double> SparseGraph::GetCost(long u, long v) {
+CostVec SparseGraph::GetCost(long u, long v) {
   for (size_t idx = 0; idx < _to_cost[u].size(); idx++){
     if (_to[u][idx] == v) {
       return _to_cost[u][idx];
@@ -48,12 +48,12 @@ std::vector<double> SparseGraph::GetCost(long u, long v) {
   return std::vector<double>();
 };
 
-std::vector<std::vector<double>> SparseGraph::GetSuccCosts(long u) {
+std::vector< CostVec > SparseGraph::GetSuccCosts(long u) {
   if (!HasVertex(u)) {return std::vector<std::vector<double>>(); }
   return _to_cost[u];
 };
 
-std::vector<std::vector<double>> SparseGraph::GetPredCosts(long u) {
+std::vector< CostVec > SparseGraph::GetPredCosts(long u) {
   if (!HasVertex(u)) {return std::vector<std::vector<double>>(); }
   return _from_cost[u];
 };
@@ -334,7 +334,6 @@ std::vector<long> Grid2d::GetSuccs(long v)
     if (nr >= _occu_grid_ptr->size()) {continue;}
     long nc = c+_act_c[idx];
     if (nc >= _occu_grid_ptr->at(0).size()) {continue;}
-    // if (! IsWithinBorder(nr, nc)) {continue;};
     if (_occu_grid_ptr->at(nr).at(nc) > 0) {continue;} // obstacle
     out.push_back(_rc2k(nr,nc));
   }
@@ -347,7 +346,7 @@ std::vector<long> Grid2d::GetPreds(long v)
 };
   
 
-std::vector<double> Grid2d::GetCost(long u, long v)
+CostVec Grid2d::GetCost(long u, long v)
 {
   // v is the target vertex of arc (u,v)
   std::vector<double> out;
@@ -356,15 +355,15 @@ std::vector<double> Grid2d::GetCost(long u, long v)
   long r2 = _k2r(v);
   long c2 = _k2c(v);
   if ((r != r2) && (c != c2)) {
-    out.push_back(1.4);
+    out.push_back(1.4*_cost_scale);
     return out;
   }else{
-    out.push_back(1.0);
+    out.push_back(1.0*_cost_scale);
     return out;
   }
 };
 
-std::vector<std::vector<double>> Grid2d::GetSuccCosts(long u)
+std::vector< CostVec > Grid2d::GetSuccCosts(long u)
 {
   std::vector<std::vector<double>> out;
   long r = _k2r(u);
@@ -378,10 +377,10 @@ std::vector<std::vector<double>> Grid2d::GetSuccCosts(long u)
     if (_occu_grid_ptr->at(nr).at(nc) > 0) {continue;} // obstacle
     std::vector<double> c;
     if (idx <= 3) { 
-      c.push_back(1);
+      c.push_back(1.0*_cost_scale);
     }
     else if (idx <= 7) {
-      c.push_back(1.4);
+      c.push_back(1.4*_cost_scale);
     }
     else { throw std::runtime_error( "[ERROR], Grid2d _kngh > 8, not supported!" ); }
     out.push_back(c);
@@ -389,7 +388,7 @@ std::vector<std::vector<double>> Grid2d::GetSuccCosts(long u)
   return out;
 };
 
-std::vector<std::vector<double>> Grid2d::GetPredCosts(long u) {
+std::vector< CostVec > Grid2d::GetPredCosts(long u) {
   return GetSuccCosts(u);
 };
 
@@ -431,6 +430,11 @@ void Grid2d::SetOccuGridPtr(std::vector< std::vector<double> >* in)
   return ;
 };
 
+std::vector< std::vector<double> >* Grid2d::GetOccuGridPtr()
+{
+  return _occu_grid_ptr;
+};
+
 void Grid2d::SetOccuGridObject(std::vector< std::vector<double> >& in)
 {
   _mat_from_py = in; // make a local copy. To avoid pybind issue.
@@ -458,6 +462,10 @@ bool Grid2d::SetKNeighbor(int kngh) {
   return false;
 };
 
+void Grid2d::SetCostScaleFactor(const double in) {
+  _cost_scale = in;
+};
+
 long Grid2d::_rc2k(const long r, const long c) const 
 {
   return r * _occu_grid_ptr->at(0).size() + c;
@@ -471,6 +479,245 @@ long Grid2d::_k2r(const long k) const
 long Grid2d::_k2c(const long k) const 
 {
   return k % _occu_grid_ptr->at(0).size();
+};
+
+/////////////////////////////////////////////////////////////////
+
+HybridGraph2d::HybridGraph2d() {};
+
+HybridGraph2d::~HybridGraph2d() {};
+
+bool HybridGraph2d::HasVertex(long v) {
+  if (v < 0) {return false;}
+  if (v < _nid_ends.back()) {return true;}
+  return false;
+};
+
+bool HybridGraph2d::HasArc(long v, long u) {
+  if (!HasVertex(v)) {return false;}
+  if (!HasVertex(u)) {return false;}
+  if (_find_subgraph(v) == _find_subgraph(u)) {return true;}
+  for (int i = 0; i < _ig_arc_srcs.size(); i++){
+    if (v == _ig_arc_srcs[i] && u == _ig_arc_tgts[i]){return true;}
+  }
+  return false;
+};
+
+std::vector<long> HybridGraph2d::GetSuccs(long v) {
+  // for (int i = 0; i < _nid_starts.size(); i++){
+  //   std::cout << " a, b = " << _nid_starts[i] << ", " << _nid_ends[i] << " ,,, " << _index_map[i] << std::endl;
+  // }
+  std::vector<long> out;
+  int idx = _find_subgraph(v);
+  if (idx < 0) {return out;}
+  long nid = _g2l_nid(v);
+  int kk = _index_map[idx];
+  std::cout << " idx = " << idx << " nid = " << nid << " kk = " << kk << std::endl;
+  if (kk >= 0){
+    out = _grids[kk]->GetSuccs(nid);
+  }else{
+    std::cout << " -kk-1 = " << -kk-1 << std::endl;
+    out = _roadmaps[-kk-1]->GetSuccs(nid);
+  }
+  for (int j = 0; j < out.size(); j++){
+    out[j] += _nid_starts[idx];
+  }
+  //
+  for (int j = 0; j < _ig_arc_srcs.size(); j++){
+    if (_ig_arc_srcs[j] == v){
+      out.push_back(_ig_arc_tgts[j]);
+    }
+  }
+  return out;
+};
+
+std::vector<long> HybridGraph2d::GetPreds(long v) {
+  std::vector<long> out;
+  int idx = _find_subgraph(v);
+  if (idx < 0) {return out;}
+  long nid = _g2l_nid(v);
+  int kk = _index_map[idx];
+  if (kk >= 0){
+    out = _grids[kk]->GetPreds(nid);
+  }else{
+    out = _roadmaps[-kk-1]->GetPreds(nid);
+  }
+  for (int j = 0; j < out.size(); j++){
+    out[j] += _nid_starts[idx];
+  }
+  for (int j = 0; j < _ig_arc_tgts.size(); j++){
+    if (_ig_arc_tgts[j] == v){
+      out.push_back(_ig_arc_srcs[j]);
+    }
+  }
+  return out;
+};
+
+CostVec HybridGraph2d::GetCost(long u, long v) {
+  std::vector<double> out;
+  int idx = _find_subgraph(u);
+  int idy = _find_subgraph(v);
+  if (idx < 0 || idy < 0) {return out;}
+  if (idx == idy){
+    long uu = _g2l_nid(u);
+    long vv = _g2l_nid(v);
+    // std::cout << " uu = " << uu << ", vv = " << vv << std::endl;
+    int kk = _index_map[idx];
+    if (kk >= 0){
+      return _grids[kk]->GetCost(uu,vv);
+    }else{
+      return _roadmaps[-kk-1]->GetCost(uu,vv);
+    }
+  }
+  for (int j = 0; j < _ig_arc_srcs.size(); j++){
+    // std::cout << " _ig_arc = " << _ig_arc_srcs[j] << ", " << _ig_arc_tgts[j] << std::endl;
+    // std::cout << " u = " << u << ", v = " << v << std::endl;
+    if (_ig_arc_srcs[j] == u && _ig_arc_tgts[j] == v){
+      return _ig_costs[j];
+    }
+  }
+  return out;
+};
+
+std::vector< CostVec > HybridGraph2d::GetSuccCosts(long u) {
+  std::vector< CostVec > out;
+  int idx = _find_subgraph(u);
+  if (idx < 0) {return out;}
+  long nid = _g2l_nid(u);
+  int kk = _index_map[idx];
+  if (kk >= 0){
+    out = _grids[kk]->GetSuccCosts(nid);
+  }else{
+    out = _roadmaps[-kk-1]->GetSuccCosts(nid);
+  }
+  for (int j = 0; j < _ig_arc_srcs.size(); j++){
+    if (_ig_arc_srcs[j] == u){
+      out.push_back(_ig_costs[j]);
+    }
+  }
+  return out;
+};
+
+std::vector< CostVec > HybridGraph2d::GetPredCosts(long u) {
+  std::vector< CostVec > out;
+  int idx = _find_subgraph(u);
+  if (idx < 0) {return out;}
+  long nid = _g2l_nid(u);
+  int kk = _index_map[idx];
+  if (kk >= 0){
+    out = _grids[kk]->GetPredCosts(nid);
+  }else{
+    out = _roadmaps[-kk-1]->GetPredCosts(nid);
+  }
+  for (int j = 0; j < _ig_arc_tgts.size(); j++){
+    if (_ig_arc_tgts[j] == u){
+      out.push_back(_ig_costs[j]);
+    }
+  }
+  return out;
+};
+
+size_t HybridGraph2d::NumVertex() {
+  if (_nid_ends.size() == 0) {
+    return 0;
+  }
+  return _nid_ends.back();
+};
+
+size_t HybridGraph2d::NumArc() {
+  size_t out = 0;
+  for (auto p : _grids){
+    out += p->NumArc();
+  }
+  for (auto p : _roadmaps){
+    out += p->NumArc();
+  }
+  out += _ig_arc_srcs.size();
+  return out;
+};
+
+size_t HybridGraph2d::NumEdge() {
+  size_t n_arcs = NumArc();
+  if (n_arcs % 2 != 0) {
+    std::cout << "[ERROR] HybridGraph2d::NumEdge is not an integer but a fraction" << std::endl;
+    throw std::runtime_error("[ERROR] HybridGraph2d::NumEdge is not an integer but a fraction");
+  }
+  return size_t(n_arcs / 2);
+};
+
+size_t HybridGraph2d::CostDim() {
+  // assume all sub-grids and sub-roadmaps have the same cost dim.
+  for (auto p : _grids){
+    return p->CostDim();
+  }
+  for (auto p : _roadmaps){
+    return p->CostDim();
+  }
+  for (auto c : _ig_costs){
+    return c.size();
+  }
+  return 0;
+};
+
+std::vector<long> HybridGraph2d::AllVertex() {
+  std::cout << "[ERROR], HybridGraph2d::AllVertex not implemented, TODO." << std::endl;
+  throw std::runtime_error( "[ERROR], HybridGraph2d::AllVertex not implemented, TODO." );
+
+  std::vector<long> out;
+  return out;
+};
+
+void HybridGraph2d::AddGrid2d(Grid2d* g) {
+  _grids.push_back(g);
+  if (_nid_starts.size() == 0) {
+    _nid_starts.push_back(0);
+    _nid_ends.push_back(g->NumVertex());
+    _index_map.push_back(0);
+    return ;
+  }
+  _nid_starts.push_back(_nid_ends.back());
+  _nid_ends.push_back(_nid_starts.back()+g->NumVertex());
+  _index_map.push_back(_grids.size()-1);
+  return ;
+};
+
+void HybridGraph2d::AddSparseGraph(SparseGraph* g) {
+  _roadmaps.push_back(g);
+  if (_nid_starts.size() == 0) {
+    _nid_starts.push_back(0);
+    _nid_ends.push_back(g->NumVertex());
+    _index_map.push_back(-1);
+    return ;
+  } 
+  _nid_starts.push_back(_nid_ends.back());
+  _nid_ends.push_back(_nid_starts.back()+g->NumVertex());
+  _index_map.push_back(-_roadmaps.size()); // _roadmaps is already increased by one due to the push_back.
+  return ;
+};
+
+void HybridGraph2d::AddExtraEdge(long u, long v, CostVec c) {
+  _ig_arc_srcs.push_back(u);
+  _ig_arc_tgts.push_back(v);
+  _ig_costs.push_back(c);
+  return ;
+};
+
+int HybridGraph2d::_find_subgraph(long v) {
+  for (int i = 0; i < _nid_ends.size(); i++){
+    if (v >= _nid_starts[i] && v < _nid_ends[i]){
+      return i;
+    }
+  }
+  return -1;
+};
+
+long HybridGraph2d::_g2l_nid(long v) {
+  for (int i = 0; i < _nid_ends.size(); i++){
+    if (v >= _nid_starts[i] && v < _nid_ends[i]){
+      return v - _nid_starts[i];
+    }
+  }
+  return -1;
 };
 
 

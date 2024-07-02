@@ -56,16 +56,16 @@ public:
 	 * @brief Return a vector that stores the cost-to-go from all other vertices to/from the 
 	 *   given vg/vs, depending on whether ExhaustiveBackwards/ExhaustiveForwards is called.
 	 */
-	std::vector<double> GetDistAll() ;
+	virtual std::vector<double> GetDistAll() ;
 	/**
 	 * @brief Return the cost-to-go from v to/from the 
 	 *   given vg/vs, depending on whether ExhaustiveBackwards/ExhaustiveForwards is called.
 	 */
-	double GetDistValue(long v) ;
+	virtual double GetDistValue(long v) ;
 	/**
 	 * @brief Similar to GetSolutionCost(), but must be called after ExhaustiveBackwards/ExhaustiveForwards.
 	 */
-	std::vector<double> GetPathCost(long v) ;
+	virtual std::vector<double> GetPathCost(long v) ;
 
 protected:
 

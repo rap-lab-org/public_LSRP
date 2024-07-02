@@ -13,10 +13,12 @@
 
 int TestSparseGraph();
 int CompareArrayAndHash();
+int TestHybridGraph();
 
 int main(){
-  TestSparseGraph();
+  // TestSparseGraph();
   // CompareArrayAndHash();
+  TestHybridGraph();
   return 0;
 };
 
@@ -108,3 +110,81 @@ int CompareArrayAndHash(){
   return 1;
 };
 
+
+int TestHybridGraph(){
+
+  std::cout << "####### test_graph.cpp - TestHybridGraph() Begin #######" << std::endl;
+  raplab::SimpleTimer timer;
+  timer.Start();
+
+  //
+  raplab::SparseGraph g;
+
+  timer.Start();
+  g.AddVertex(0);
+  g.AddVertex(1);
+  g.AddVertex(2);
+  g.AddVertex(3);
+  g.AddVertex(4);
+
+  g.AddArc(0,1, std::vector<double>({11.3}) );
+  g.AddArc(1,0, std::vector<double>({0.3}) );
+  g.AddEdge(1,2, std::vector<double>({15.5}) );
+  g.AddArc(2,3, std::vector<double>({15.5}) );
+  g.AddEdge(3,4, std::vector<double>({15.9}) );
+  g.AddEdge(4,1, std::vector<double>({17.6}) );
+  // g.AddEdge(1,7, std::vector<double>({9.9}) );
+
+  //
+  raplab::Grid2d gg;
+  int r = 10, c = 10;
+  std::vector<std::vector<double> > occupancy_grid;
+  occupancy_grid.resize(r);
+  for (int i = 0; i < r; i++){
+    occupancy_grid[i].resize(c, 0);
+  }
+  occupancy_grid[0][2] = 1;
+  gg.SetOccuGridPtr(&occupancy_grid);
+  gg.SetCostScaleFactor(10.0);
+
+  //
+  raplab::HybridGraph2d hg;
+  hg.AddGrid2d(&gg);
+  hg.AddGrid2d(&gg);
+  hg.AddSparseGraph(&g);
+  hg.AddSparseGraph(&g);
+
+  std::cout << hg.GetSuccs(4) << std::endl;
+  std::cout << hg.GetSuccs(104) << std::endl;
+  std::cout << hg.GetSuccs(200) << std::endl;
+  std::cout << hg.GetSuccs(205) << std::endl;
+
+  hg.AddExtraEdge(10,104,raplab::InitVecType(1,100.0));
+  hg.AddExtraEdge(104,10,raplab::InitVecType(1,100.0));
+  hg.AddExtraEdge(190,200,raplab::InitVecType(1,100.0));
+  hg.AddExtraEdge(201,207,raplab::InitVecType(1,100.0));
+
+  auto succs = hg.GetSuccs(205);
+  for (auto uu : succs){
+    std::cout << "c(205," << uu << ") = " << hg.GetCost(205,uu) << std::endl;
+  }
+
+  succs = hg.GetSuccs(104);
+  for (auto uu : succs){
+    std::cout << "c(104," << uu << ") = " << hg.GetCost(104,uu) << std::endl;
+  }
+
+  auto preds = hg.GetPreds(201);
+  for (auto uu : preds){
+    std::cout << "c(201," << uu << ") = " << hg.GetCost(201,uu) << std::endl;
+  }
+
+  preds = hg.GetPreds(104);
+  for (auto uu : preds){
+    std::cout << "c(104," << uu << ") = " << hg.GetCost(104,uu) << std::endl;
+  }
+
+  std::cout << "####### test_graph.cpp - TestHybridGraph() End #######" << std::endl;
+
+  return 1;
+};
