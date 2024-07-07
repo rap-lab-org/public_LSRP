@@ -90,7 +90,7 @@ bool Pibt::PIBT(Agent *agent1, Agent *agent2, const std::vector<long> &Sfrom, st
     //sort node by dis_table value
     auto &policy = _policies.at(agent1->id);
     std::sort(C.begin(), C.end(), [&](long a, long b) {
-        return policy.Phi(a) > policy.Phi(b);
+        return policy.H(a) > policy.H(b);
     });
 
 
