@@ -4,11 +4,13 @@
  *******************************************/
 
 #include "mapf_util.hpp"
+#include "mapf_mstar.hpp"
 #include "union_find.hpp"
 #include "search_astar.hpp"
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
+#include "mapf_pibt.hpp"
 #include <mapf_pibt.hpp>
 #include <deque>
 #include <algorithm>
@@ -39,12 +41,12 @@ int Pibt::Solve(std::vector<long> &starts, std::vector<long> &goals, double time
     joint_policy_.push_back(starts);
 // initialize agents priority
     agents_.clear();
-    double gap = 1 / (starts.size() + 1);
+    double gap = 1.0 / (starts.size() + 1);
     for (size_t i = 0; i < starts.size(); ++i) {
         agents_.emplace_back(i, 1 - i * gap);
     }
-
-// Main function
+    std::cout<<"debugging True solve"<<std::endl;
+    // Main function
     while (true) {
         std::vector<long> Sfrom = joint_policy_.back();
         std::vector<long> Sto(Sfrom.size(), -1);
@@ -82,13 +84,15 @@ int Pibt::Solve(std::vector<long> &starts, std::vector<long> &goals, double time
 }
 
 bool Pibt::PIBT(Agent *agent1, Agent *agent2, const std::vector<long> &Sfrom, std::vector<long> &Sto) {
-    std::vector<long> C = graph_->GetSuccs(Sfrom[agent1->id]);
+    std::vector<long> C = _graph->GetSuccs(Sfrom[agent1->id]);
     C.push_back(Sfrom[agent1->id]);
     std::shuffle(C.begin(), C.end(), rng_);
     //sort node by dis_table value
+    auto &policy = _policies.at(agent1->id);
     std::sort(C.begin(), C.end(), [&](long a, long b) {
-        return dis_table_[agent1->id].at(a) < dis_table_[agent1->id].at(b);
+        return policy.Phi(a) > policy.Phi(b);
     });
+
 
     for (long v: C){
         if(checkOccupied(v, Sto)){
@@ -143,14 +147,14 @@ CostVec Pibt::GetPlanCost(long nid) {
 // I dont know what it is
 std::unordered_map<std::string, double> Pibt::GetStats() {
     std::unordered_map<std::string, double> stats;
-    // Populate stats
     return stats;
 }
-void Pibt::set_distable(const std::unordered_map<long, std::unordered_map<long, float>>* distable) {
-    if (distable != nullptr) {
-        dis_table_ = *distable;
+void Pibt::set_policy(const std::unordered_map<int, MstarPolicy> *policy) {
+    if (policy != nullptr) {
+        _policies = *policy;
     } else {
-        dis_table_ = generateDistable();
+        std::cout<<"debugging generate Distable"<<std::endl;
+        generatePolicy();
     }
 }
 
@@ -175,44 +179,31 @@ Agent *Pibt::mayPush(long v, const std::vector<long> &Sfrom, const std::vector<l
     }
 }
 
-std::unordered_map<long, std::unordered_map<long, float>> Pibt::generateDistable() {
-    std::unordered_map<long, std::unordered_map<long, float>> dist_table;
-
-    for (size_t i = 0; i < v_init_.size(); ++i) {
-        std::deque<long> tmp;
-        tmp.push_back(v_f_[i]);
-
-        float inf = std::numeric_limits<float>::infinity();
-        std::unordered_map<long, float> dist_map;
-        dist_map[v_f_[i]] = 0;  // 设置初始点距离为0
-
-        while (!tmp.empty()) {
-            long curr = tmp.front();
-            tmp.pop_front();
-
-            for (const auto &neigh: graph_->GetSuccs(curr)) {
-                if (dist_map.find(neigh) == dist_map.end() || dist_map[neigh] > dist_map[curr] + 1) {  // 更新邻居的距离
-                    dist_map[neigh] = dist_map[curr] + 1;
-                    tmp.push_back(neigh);
-                }
-            }
+bool Pibt::generatePolicy() {
+    _policies.clear();
+    for (int ri = 0; ri < v_init_.size(); ri++) {
+        _policies[ri] = MstarPolicy();
+        _policies[ri].SetGraphPtr(_graph);
+        double remain_time = _tlimit - std::chrono::duration<double>(
+                std::chrono::steady_clock::now() - _t0).count();
+        bool good = _policies[ri].Compute(v_f_[ri], remain_time);
+        if (!good) { // timeout for policy computation.
+            return false;
         }
-
-        dist_table[v_f_[i]] = dist_map;
     }
-    return dist_table;
+    return true;
 }
 
-// True solve function
-int Pibt::Solve(std::vector<long> &starts, std::vector<long> &goals, double time_limit, double eps,
-                    std::unordered_map<long, std::unordered_map<long, float>> *dis_table) {
+//  solve function
+int Pibt::_Solve(std::vector<long> &starts, std::vector<long> &goals, double time_limit, double eps,
+                 std::unordered_map<int, MstarPolicy> *policies) {
+     std::cout<<"debugging Main solve"<<std::endl;
      v_init_ = starts;
      v_f_ = goals;
-     set_distable(dis_table);
-     Solve(starts, goals,time_limit,eps);
+     _tlimit = time_limit;
+     set_policy(policies);
+     return  Solve(starts, goals, time_limit, eps);
 }
-
-
 }
 
 

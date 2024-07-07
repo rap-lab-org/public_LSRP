@@ -65,6 +65,14 @@ build CMakeFiles/cppraplab.dir/source/graph_io.cpp.obj: CXX_COMPILER__cppraplab_
   OBJECT_DIR = CMakeFiles\cppraplab.dir
   OBJECT_FILE_DIR = CMakeFiles\cppraplab.dir\source
 
+build CMakeFiles/cppraplab.dir/source/mapf_mpmstar.cpp.obj: CXX_COMPILER__cppraplab_unscanned_Debug C$:/Users/David$ Zhou/Documents/GitHub/public_LSRP/cpp/source/mapf_mpmstar.cpp || cmake_object_order_depends_target_cppraplab
+  DEFINES = -Dcppraplab_EXPORTS
+  DEP_FILE = CMakeFiles\cppraplab.dir\source\mapf_mpmstar.cpp.obj.d
+  FLAGS = -std=c++0x  -g -fdiagnostics-color=always
+  INCLUDES = -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/DIRECTORY" -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/include"
+  OBJECT_DIR = CMakeFiles\cppraplab.dir
+  OBJECT_FILE_DIR = CMakeFiles\cppraplab.dir\source
+
 build CMakeFiles/cppraplab.dir/source/mapf_mstar.cpp.obj: CXX_COMPILER__cppraplab_unscanned_Debug C$:/Users/David$ Zhou/Documents/GitHub/public_LSRP/cpp/source/mapf_mstar.cpp || cmake_object_order_depends_target_cppraplab
   DEFINES = -Dcppraplab_EXPORTS
   DEP_FILE = CMakeFiles\cppraplab.dir\source\mapf_mstar.cpp.obj.d
@@ -121,6 +129,14 @@ build CMakeFiles/cppraplab.dir/source/union_find.cpp.obj: CXX_COMPILER__cpprapla
   OBJECT_DIR = CMakeFiles\cppraplab.dir
   OBJECT_FILE_DIR = CMakeFiles\cppraplab.dir\source
 
+build CMakeFiles/cppraplab.dir/test/test_mapf_pibt.cpp.obj: CXX_COMPILER__cppraplab_unscanned_Debug C$:/Users/David$ Zhou/Documents/GitHub/public_LSRP/cpp/test/test_mapf_pibt.cpp || cmake_object_order_depends_target_cppraplab
+  DEFINES = -Dcppraplab_EXPORTS
+  DEP_FILE = CMakeFiles\cppraplab.dir\test\test_mapf_pibt.cpp.obj.d
+  FLAGS = -std=c++0x  -g -fdiagnostics-color=always
+  INCLUDES = -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/DIRECTORY" -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/include"
+  OBJECT_DIR = CMakeFiles\cppraplab.dir
+  OBJECT_FILE_DIR = CMakeFiles\cppraplab.dir\test
+
 
 # =============================================================================
 # Link build statements for SHARED_LIBRARY target cppraplab
@@ -129,7 +145,7 @@ build CMakeFiles/cppraplab.dir/source/union_find.cpp.obj: CXX_COMPILER__cpprapla
 #############################################
 # Link the shared library libcppraplab.dll
 
-build libcppraplab.dll libcppraplab.dll.a: CXX_SHARED_LIBRARY_LINKER__cppraplab_Debug CMakeFiles/cppraplab.dir/source/graph.cpp.obj CMakeFiles/cppraplab.dir/source/graph_io.cpp.obj CMakeFiles/cppraplab.dir/source/mapf_mstar.cpp.obj CMakeFiles/cppraplab.dir/source/mapf_pibt.cpp.obj CMakeFiles/cppraplab.dir/source/mapf_util.cpp.obj CMakeFiles/cppraplab.dir/source/search.cpp.obj CMakeFiles/cppraplab.dir/source/search_astar.cpp.obj CMakeFiles/cppraplab.dir/source/search_dijkstra.cpp.obj CMakeFiles/cppraplab.dir/source/union_find.cpp.obj
+build libcppraplab.dll libcppraplab.dll.a: CXX_SHARED_LIBRARY_LINKER__cppraplab_Debug CMakeFiles/cppraplab.dir/source/graph.cpp.obj CMakeFiles/cppraplab.dir/source/graph_io.cpp.obj CMakeFiles/cppraplab.dir/source/mapf_mpmstar.cpp.obj CMakeFiles/cppraplab.dir/source/mapf_mstar.cpp.obj CMakeFiles/cppraplab.dir/source/mapf_pibt.cpp.obj CMakeFiles/cppraplab.dir/source/mapf_util.cpp.obj CMakeFiles/cppraplab.dir/source/search.cpp.obj CMakeFiles/cppraplab.dir/source/search_astar.cpp.obj CMakeFiles/cppraplab.dir/source/search_dijkstra.cpp.obj CMakeFiles/cppraplab.dir/source/union_find.cpp.obj CMakeFiles/cppraplab.dir/test/test_mapf_pibt.cpp.obj
   LANGUAGE_COMPILE_FLAGS = -std=c++0x  -g
   LINK_LIBRARIES = -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\cppraplab.dir
@@ -156,6 +172,27 @@ build CMakeFiles/test_astar.dir/test/test_astar.cpp.obj: CXX_COMPILER__test_asta
   OBJECT_DIR = CMakeFiles\test_astar.dir
   OBJECT_FILE_DIR = CMakeFiles\test_astar.dir\test
 
+build CMakeFiles/test_astar.dir/source/mapf_mpmstar.cpp.obj: CXX_COMPILER__test_astar_unscanned_Debug C$:/Users/David$ Zhou/Documents/GitHub/public_LSRP/cpp/source/mapf_mpmstar.cpp || cmake_object_order_depends_target_test_astar
+  DEP_FILE = CMakeFiles\test_astar.dir\source\mapf_mpmstar.cpp.obj.d
+  FLAGS = -std=c++0x  -g -fdiagnostics-color=always
+  INCLUDES = -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/DIRECTORY" -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/include"
+  OBJECT_DIR = CMakeFiles\test_astar.dir
+  OBJECT_FILE_DIR = CMakeFiles\test_astar.dir\source
+
+build CMakeFiles/test_astar.dir/source/mapf_pibt.cpp.obj: CXX_COMPILER__test_astar_unscanned_Debug C$:/Users/David$ Zhou/Documents/GitHub/public_LSRP/cpp/source/mapf_pibt.cpp || cmake_object_order_depends_target_test_astar
+  DEP_FILE = CMakeFiles\test_astar.dir\source\mapf_pibt.cpp.obj.d
+  FLAGS = -std=c++0x  -g -fdiagnostics-color=always
+  INCLUDES = -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/DIRECTORY" -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/include"
+  OBJECT_DIR = CMakeFiles\test_astar.dir
+  OBJECT_FILE_DIR = CMakeFiles\test_astar.dir\source
+
+build CMakeFiles/test_astar.dir/test/test_mapf_pibt.cpp.obj: CXX_COMPILER__test_astar_unscanned_Debug C$:/Users/David$ Zhou/Documents/GitHub/public_LSRP/cpp/test/test_mapf_pibt.cpp || cmake_object_order_depends_target_test_astar
+  DEP_FILE = CMakeFiles\test_astar.dir\test\test_mapf_pibt.cpp.obj.d
+  FLAGS = -std=c++0x  -g -fdiagnostics-color=always
+  INCLUDES = -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/DIRECTORY" -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/include"
+  OBJECT_DIR = CMakeFiles\test_astar.dir
+  OBJECT_FILE_DIR = CMakeFiles\test_astar.dir\test
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target test_astar
@@ -164,7 +201,7 @@ build CMakeFiles/test_astar.dir/test/test_astar.cpp.obj: CXX_COMPILER__test_asta
 #############################################
 # Link the executable test_astar.exe
 
-build test_astar.exe: CXX_EXECUTABLE_LINKER__test_astar_Debug CMakeFiles/test_astar.dir/test/test_astar.cpp.obj | libcppraplab.dll.a || libcppraplab.dll
+build test_astar.exe: CXX_EXECUTABLE_LINKER__test_astar_Debug CMakeFiles/test_astar.dir/test/test_astar.cpp.obj CMakeFiles/test_astar.dir/source/mapf_mpmstar.cpp.obj CMakeFiles/test_astar.dir/source/mapf_pibt.cpp.obj CMakeFiles/test_astar.dir/test/test_mapf_pibt.cpp.obj | libcppraplab.dll.a || libcppraplab.dll
   FLAGS = -std=c++0x  -g
   LINK_LIBRARIES = libcppraplab.dll.a  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\test_astar.dir
@@ -190,6 +227,27 @@ build CMakeFiles/test_dijkstra.dir/test/test_dijkstra.cpp.obj: CXX_COMPILER__tes
   OBJECT_DIR = CMakeFiles\test_dijkstra.dir
   OBJECT_FILE_DIR = CMakeFiles\test_dijkstra.dir\test
 
+build CMakeFiles/test_dijkstra.dir/source/mapf_mpmstar.cpp.obj: CXX_COMPILER__test_dijkstra_unscanned_Debug C$:/Users/David$ Zhou/Documents/GitHub/public_LSRP/cpp/source/mapf_mpmstar.cpp || cmake_object_order_depends_target_test_dijkstra
+  DEP_FILE = CMakeFiles\test_dijkstra.dir\source\mapf_mpmstar.cpp.obj.d
+  FLAGS = -std=c++0x  -g -fdiagnostics-color=always
+  INCLUDES = -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/DIRECTORY" -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/include"
+  OBJECT_DIR = CMakeFiles\test_dijkstra.dir
+  OBJECT_FILE_DIR = CMakeFiles\test_dijkstra.dir\source
+
+build CMakeFiles/test_dijkstra.dir/source/mapf_pibt.cpp.obj: CXX_COMPILER__test_dijkstra_unscanned_Debug C$:/Users/David$ Zhou/Documents/GitHub/public_LSRP/cpp/source/mapf_pibt.cpp || cmake_object_order_depends_target_test_dijkstra
+  DEP_FILE = CMakeFiles\test_dijkstra.dir\source\mapf_pibt.cpp.obj.d
+  FLAGS = -std=c++0x  -g -fdiagnostics-color=always
+  INCLUDES = -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/DIRECTORY" -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/include"
+  OBJECT_DIR = CMakeFiles\test_dijkstra.dir
+  OBJECT_FILE_DIR = CMakeFiles\test_dijkstra.dir\source
+
+build CMakeFiles/test_dijkstra.dir/test/test_mapf_pibt.cpp.obj: CXX_COMPILER__test_dijkstra_unscanned_Debug C$:/Users/David$ Zhou/Documents/GitHub/public_LSRP/cpp/test/test_mapf_pibt.cpp || cmake_object_order_depends_target_test_dijkstra
+  DEP_FILE = CMakeFiles\test_dijkstra.dir\test\test_mapf_pibt.cpp.obj.d
+  FLAGS = -std=c++0x  -g -fdiagnostics-color=always
+  INCLUDES = -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/DIRECTORY" -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/include"
+  OBJECT_DIR = CMakeFiles\test_dijkstra.dir
+  OBJECT_FILE_DIR = CMakeFiles\test_dijkstra.dir\test
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target test_dijkstra
@@ -198,7 +256,7 @@ build CMakeFiles/test_dijkstra.dir/test/test_dijkstra.cpp.obj: CXX_COMPILER__tes
 #############################################
 # Link the executable test_dijkstra.exe
 
-build test_dijkstra.exe: CXX_EXECUTABLE_LINKER__test_dijkstra_Debug CMakeFiles/test_dijkstra.dir/test/test_dijkstra.cpp.obj | libcppraplab.dll.a || libcppraplab.dll
+build test_dijkstra.exe: CXX_EXECUTABLE_LINKER__test_dijkstra_Debug CMakeFiles/test_dijkstra.dir/test/test_dijkstra.cpp.obj CMakeFiles/test_dijkstra.dir/source/mapf_mpmstar.cpp.obj CMakeFiles/test_dijkstra.dir/source/mapf_pibt.cpp.obj CMakeFiles/test_dijkstra.dir/test/test_mapf_pibt.cpp.obj | libcppraplab.dll.a || libcppraplab.dll
   FLAGS = -std=c++0x  -g
   LINK_LIBRARIES = libcppraplab.dll.a  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\test_dijkstra.dir
@@ -224,6 +282,27 @@ build CMakeFiles/test_graph.dir/test/test_graph.cpp.obj: CXX_COMPILER__test_grap
   OBJECT_DIR = CMakeFiles\test_graph.dir
   OBJECT_FILE_DIR = CMakeFiles\test_graph.dir\test
 
+build CMakeFiles/test_graph.dir/source/mapf_mpmstar.cpp.obj: CXX_COMPILER__test_graph_unscanned_Debug C$:/Users/David$ Zhou/Documents/GitHub/public_LSRP/cpp/source/mapf_mpmstar.cpp || cmake_object_order_depends_target_test_graph
+  DEP_FILE = CMakeFiles\test_graph.dir\source\mapf_mpmstar.cpp.obj.d
+  FLAGS = -std=c++0x  -g -fdiagnostics-color=always
+  INCLUDES = -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/DIRECTORY" -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/include"
+  OBJECT_DIR = CMakeFiles\test_graph.dir
+  OBJECT_FILE_DIR = CMakeFiles\test_graph.dir\source
+
+build CMakeFiles/test_graph.dir/source/mapf_pibt.cpp.obj: CXX_COMPILER__test_graph_unscanned_Debug C$:/Users/David$ Zhou/Documents/GitHub/public_LSRP/cpp/source/mapf_pibt.cpp || cmake_object_order_depends_target_test_graph
+  DEP_FILE = CMakeFiles\test_graph.dir\source\mapf_pibt.cpp.obj.d
+  FLAGS = -std=c++0x  -g -fdiagnostics-color=always
+  INCLUDES = -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/DIRECTORY" -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/include"
+  OBJECT_DIR = CMakeFiles\test_graph.dir
+  OBJECT_FILE_DIR = CMakeFiles\test_graph.dir\source
+
+build CMakeFiles/test_graph.dir/test/test_mapf_pibt.cpp.obj: CXX_COMPILER__test_graph_unscanned_Debug C$:/Users/David$ Zhou/Documents/GitHub/public_LSRP/cpp/test/test_mapf_pibt.cpp || cmake_object_order_depends_target_test_graph
+  DEP_FILE = CMakeFiles\test_graph.dir\test\test_mapf_pibt.cpp.obj.d
+  FLAGS = -std=c++0x  -g -fdiagnostics-color=always
+  INCLUDES = -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/DIRECTORY" -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/include"
+  OBJECT_DIR = CMakeFiles\test_graph.dir
+  OBJECT_FILE_DIR = CMakeFiles\test_graph.dir\test
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target test_graph
@@ -232,7 +311,7 @@ build CMakeFiles/test_graph.dir/test/test_graph.cpp.obj: CXX_COMPILER__test_grap
 #############################################
 # Link the executable test_graph.exe
 
-build test_graph.exe: CXX_EXECUTABLE_LINKER__test_graph_Debug CMakeFiles/test_graph.dir/test/test_graph.cpp.obj | libcppraplab.dll.a || libcppraplab.dll
+build test_graph.exe: CXX_EXECUTABLE_LINKER__test_graph_Debug CMakeFiles/test_graph.dir/test/test_graph.cpp.obj CMakeFiles/test_graph.dir/source/mapf_mpmstar.cpp.obj CMakeFiles/test_graph.dir/source/mapf_pibt.cpp.obj CMakeFiles/test_graph.dir/test/test_mapf_pibt.cpp.obj | libcppraplab.dll.a || libcppraplab.dll
   FLAGS = -std=c++0x  -g
   LINK_LIBRARIES = libcppraplab.dll.a  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\test_graph.dir
@@ -258,6 +337,27 @@ build CMakeFiles/test_mapf_mstar.dir/test/test_mapf_mstar.cpp.obj: CXX_COMPILER_
   OBJECT_DIR = CMakeFiles\test_mapf_mstar.dir
   OBJECT_FILE_DIR = CMakeFiles\test_mapf_mstar.dir\test
 
+build CMakeFiles/test_mapf_mstar.dir/source/mapf_mpmstar.cpp.obj: CXX_COMPILER__test_mapf_mstar_unscanned_Debug C$:/Users/David$ Zhou/Documents/GitHub/public_LSRP/cpp/source/mapf_mpmstar.cpp || cmake_object_order_depends_target_test_mapf_mstar
+  DEP_FILE = CMakeFiles\test_mapf_mstar.dir\source\mapf_mpmstar.cpp.obj.d
+  FLAGS = -std=c++0x  -g -fdiagnostics-color=always
+  INCLUDES = -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/DIRECTORY" -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/include"
+  OBJECT_DIR = CMakeFiles\test_mapf_mstar.dir
+  OBJECT_FILE_DIR = CMakeFiles\test_mapf_mstar.dir\source
+
+build CMakeFiles/test_mapf_mstar.dir/source/mapf_pibt.cpp.obj: CXX_COMPILER__test_mapf_mstar_unscanned_Debug C$:/Users/David$ Zhou/Documents/GitHub/public_LSRP/cpp/source/mapf_pibt.cpp || cmake_object_order_depends_target_test_mapf_mstar
+  DEP_FILE = CMakeFiles\test_mapf_mstar.dir\source\mapf_pibt.cpp.obj.d
+  FLAGS = -std=c++0x  -g -fdiagnostics-color=always
+  INCLUDES = -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/DIRECTORY" -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/include"
+  OBJECT_DIR = CMakeFiles\test_mapf_mstar.dir
+  OBJECT_FILE_DIR = CMakeFiles\test_mapf_mstar.dir\source
+
+build CMakeFiles/test_mapf_mstar.dir/test/test_mapf_pibt.cpp.obj: CXX_COMPILER__test_mapf_mstar_unscanned_Debug C$:/Users/David$ Zhou/Documents/GitHub/public_LSRP/cpp/test/test_mapf_pibt.cpp || cmake_object_order_depends_target_test_mapf_mstar
+  DEP_FILE = CMakeFiles\test_mapf_mstar.dir\test\test_mapf_pibt.cpp.obj.d
+  FLAGS = -std=c++0x  -g -fdiagnostics-color=always
+  INCLUDES = -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/DIRECTORY" -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/include"
+  OBJECT_DIR = CMakeFiles\test_mapf_mstar.dir
+  OBJECT_FILE_DIR = CMakeFiles\test_mapf_mstar.dir\test
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target test_mapf_mstar
@@ -266,7 +366,7 @@ build CMakeFiles/test_mapf_mstar.dir/test/test_mapf_mstar.cpp.obj: CXX_COMPILER_
 #############################################
 # Link the executable test_mapf_mstar.exe
 
-build test_mapf_mstar.exe: CXX_EXECUTABLE_LINKER__test_mapf_mstar_Debug CMakeFiles/test_mapf_mstar.dir/test/test_mapf_mstar.cpp.obj | libcppraplab.dll.a || libcppraplab.dll
+build test_mapf_mstar.exe: CXX_EXECUTABLE_LINKER__test_mapf_mstar_Debug CMakeFiles/test_mapf_mstar.dir/test/test_mapf_mstar.cpp.obj CMakeFiles/test_mapf_mstar.dir/source/mapf_mpmstar.cpp.obj CMakeFiles/test_mapf_mstar.dir/source/mapf_pibt.cpp.obj CMakeFiles/test_mapf_mstar.dir/test/test_mapf_pibt.cpp.obj | libcppraplab.dll.a || libcppraplab.dll
   FLAGS = -std=c++0x  -g
   LINK_LIBRARIES = libcppraplab.dll.a  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\test_mapf_mstar.dir
@@ -277,38 +377,52 @@ build test_mapf_mstar.exe: CXX_EXECUTABLE_LINKER__test_mapf_mstar_Debug CMakeFil
   TARGET_PDB = test_mapf_mstar.exe.dbg
 
 # =============================================================================
-# Object build statements for EXECUTABLE target test_pibt
+# Object build statements for EXECUTABLE target test_mapf_pibt
 
 
 #############################################
-# Order-only phony target for test_pibt
+# Order-only phony target for test_mapf_pibt
 
-build cmake_object_order_depends_target_test_pibt: phony || cmake_object_order_depends_target_cppraplab
+build cmake_object_order_depends_target_test_mapf_pibt: phony || cmake_object_order_depends_target_cppraplab
 
-build CMakeFiles/test_pibt.dir/test/test_pibt.cpp.obj: CXX_COMPILER__test_pibt_unscanned_Debug C$:/Users/David$ Zhou/Documents/GitHub/public_LSRP/cpp/test/test_pibt.cpp || cmake_object_order_depends_target_test_pibt
-  DEP_FILE = CMakeFiles\test_pibt.dir\test\test_pibt.cpp.obj.d
+build CMakeFiles/test_mapf_pibt.dir/test/test_mapf_pibt.cpp.obj: CXX_COMPILER__test_mapf_pibt_unscanned_Debug C$:/Users/David$ Zhou/Documents/GitHub/public_LSRP/cpp/test/test_mapf_pibt.cpp || cmake_object_order_depends_target_test_mapf_pibt
+  DEP_FILE = CMakeFiles\test_mapf_pibt.dir\test\test_mapf_pibt.cpp.obj.d
   FLAGS = -std=c++0x  -g -fdiagnostics-color=always
   INCLUDES = -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/DIRECTORY" -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/include"
-  OBJECT_DIR = CMakeFiles\test_pibt.dir
-  OBJECT_FILE_DIR = CMakeFiles\test_pibt.dir\test
+  OBJECT_DIR = CMakeFiles\test_mapf_pibt.dir
+  OBJECT_FILE_DIR = CMakeFiles\test_mapf_pibt.dir\test
+
+build CMakeFiles/test_mapf_pibt.dir/source/mapf_mpmstar.cpp.obj: CXX_COMPILER__test_mapf_pibt_unscanned_Debug C$:/Users/David$ Zhou/Documents/GitHub/public_LSRP/cpp/source/mapf_mpmstar.cpp || cmake_object_order_depends_target_test_mapf_pibt
+  DEP_FILE = CMakeFiles\test_mapf_pibt.dir\source\mapf_mpmstar.cpp.obj.d
+  FLAGS = -std=c++0x  -g -fdiagnostics-color=always
+  INCLUDES = -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/DIRECTORY" -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/include"
+  OBJECT_DIR = CMakeFiles\test_mapf_pibt.dir
+  OBJECT_FILE_DIR = CMakeFiles\test_mapf_pibt.dir\source
+
+build CMakeFiles/test_mapf_pibt.dir/source/mapf_pibt.cpp.obj: CXX_COMPILER__test_mapf_pibt_unscanned_Debug C$:/Users/David$ Zhou/Documents/GitHub/public_LSRP/cpp/source/mapf_pibt.cpp || cmake_object_order_depends_target_test_mapf_pibt
+  DEP_FILE = CMakeFiles\test_mapf_pibt.dir\source\mapf_pibt.cpp.obj.d
+  FLAGS = -std=c++0x  -g -fdiagnostics-color=always
+  INCLUDES = -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/DIRECTORY" -I"C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/include"
+  OBJECT_DIR = CMakeFiles\test_mapf_pibt.dir
+  OBJECT_FILE_DIR = CMakeFiles\test_mapf_pibt.dir\source
 
 
 # =============================================================================
-# Link build statements for EXECUTABLE target test_pibt
+# Link build statements for EXECUTABLE target test_mapf_pibt
 
 
 #############################################
-# Link the executable test_pibt.exe
+# Link the executable test_mapf_pibt.exe
 
-build test_pibt.exe: CXX_EXECUTABLE_LINKER__test_pibt_Debug CMakeFiles/test_pibt.dir/test/test_pibt.cpp.obj | libcppraplab.dll.a || libcppraplab.dll
+build test_mapf_pibt.exe: CXX_EXECUTABLE_LINKER__test_mapf_pibt_Debug CMakeFiles/test_mapf_pibt.dir/test/test_mapf_pibt.cpp.obj CMakeFiles/test_mapf_pibt.dir/source/mapf_mpmstar.cpp.obj CMakeFiles/test_mapf_pibt.dir/source/mapf_pibt.cpp.obj | libcppraplab.dll.a || libcppraplab.dll
   FLAGS = -std=c++0x  -g
   LINK_LIBRARIES = libcppraplab.dll.a  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
-  OBJECT_DIR = CMakeFiles\test_pibt.dir
+  OBJECT_DIR = CMakeFiles\test_mapf_pibt.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
-  TARGET_FILE = test_pibt.exe
-  TARGET_IMPLIB = libtest_pibt.dll.a
-  TARGET_PDB = test_pibt.exe.dbg
+  TARGET_FILE = test_mapf_pibt.exe
+  TARGET_IMPLIB = libtest_mapf_pibt.dll.a
+  TARGET_PDB = test_mapf_pibt.exe.dbg
 
 
 #############################################
@@ -346,7 +460,7 @@ build test_graph: phony test_graph.exe
 
 build test_mapf_mstar: phony test_mapf_mstar.exe
 
-build test_pibt: phony test_pibt.exe
+build test_mapf_pibt: phony test_mapf_pibt.exe
 
 # =============================================================================
 # Folder targets.
@@ -356,7 +470,7 @@ build test_pibt: phony test_pibt.exe
 #############################################
 # Folder: C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/cmake-build-debug
 
-build all: phony libcppraplab.dll test_astar.exe test_dijkstra.exe test_graph.exe test_mapf_mstar.exe test_pibt.exe
+build all: phony libcppraplab.dll test_astar.exe test_dijkstra.exe test_graph.exe test_mapf_mstar.exe test_mapf_pibt.exe
 
 # =============================================================================
 # Unknown Build Time Dependencies.

@@ -8,18 +8,5 @@ CMake Deprecation Warning at CMakeLists.txt:1 (cmake_minimum_required):
 
 
 -- Configuring done (0.2s)
-CMake Error at CMakeLists.txt:20 (add_library):
-  Cannot find source file:
-
-    ../../../../../../mapf_pibt.hpp
-
-  Tried extensions .c .C .c++ .cc .cpp .cxx .cu .mpp .m .M .mm .ixx .cppm
-  .ccm .cxxm .c++m .h .hh .h++ .hm .hpp .hxx .in .txx .f .F .for .f77 .f90
-  .f95 .f03 .hip .ispc
-
-
-CMake Error at CMakeLists.txt:20 (add_library):
-  No SOURCES given to target: cppraplab
-
-
-CMake Generate step failed.  Build files cannot be regenerated correctly.
+-- Generating done (0.0s)
+-- Build files have been written to: C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/cmake-build-debug

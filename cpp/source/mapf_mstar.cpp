@@ -271,6 +271,7 @@ std::unordered_map<std::string, double> Mstar::GetStats() {
 
 bool Mstar::_GetLimitNgh(const long& sid, std::vector< std::vector<long> >* out) 
 {
+  // most common method to generate neighbours
   out->clear();
   const auto& colSet = _states[sid].colSet;
   // if (colSet.size() > MAX_COLSET_SIZE) {
