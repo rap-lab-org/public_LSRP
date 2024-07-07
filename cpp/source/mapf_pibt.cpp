@@ -176,33 +176,32 @@ Agent *Pibt::mayPush(long v, const std::vector<long> &Sfrom, const std::vector<l
 }
 
 std::unordered_map<long, std::unordered_map<long, float>> Pibt::generateDistable() {
-        std::unordered_map<long, std::unordered_map<long, float>> dist_table;
+    std::unordered_map<long, std::unordered_map<long, float>> dist_table;
 
-        for (size_t i = 0; i < v_init_.size(); ++i) {
-            std::deque<long> tmp;
-            tmp.push_back(v_f_[i]);
+    for (size_t i = 0; i < v_init_.size(); ++i) {
+        std::deque<long> tmp;
+        tmp.push_back(v_f_[i]);
 
-            float inf = std::numeric_limits<float>::infinity();
-            std::unordered_map<long, float> dist_map;
-            dist_map[v_f_[i]] = 0;  // 设置初始点距离为0
+        float inf = std::numeric_limits<float>::infinity();
+        std::unordered_map<long, float> dist_map;
+        dist_map[v_f_[i]] = 0;  // 设置初始点距离为0
 
-            while (!tmp.empty()) {
-                long curr = tmp.front();
-                tmp.pop_front();
+        while (!tmp.empty()) {
+            long curr = tmp.front();
+            tmp.pop_front();
 
-                for (const auto& neigh : graph_->GetSuccs(curr)) {
-                    if (dist_map.find(neigh) == dist_map.end() || dist_map[neigh] > dist_map[curr] + 1) {  // 更新邻居的距离
-                        dist_map[neigh] = dist_map[curr] + 1;
-                        tmp.push_back(neigh);
-                    }
+            for (const auto &neigh: graph_->GetSuccs(curr)) {
+                if (dist_map.find(neigh) == dist_map.end() || dist_map[neigh] > dist_map[curr] + 1) {  // 更新邻居的距离
+                    dist_map[neigh] = dist_map[curr] + 1;
+                    tmp.push_back(neigh);
                 }
             }
-
-            dist_table[v_f_[i]] = dist_map;
         }
 
-        return dist_table;
+        dist_table[v_f_[i]] = dist_map;
     }
+    return dist_table;
+}
 
 // True solve function
 int Pibt::Solve(std::vector<long> &starts, std::vector<long> &goals, double time_limit, double eps,

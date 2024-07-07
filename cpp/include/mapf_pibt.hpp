@@ -44,10 +44,10 @@ public:
     virtual CostVec GetPlanCost(long nid = -1) override;
     virtual std::unordered_map<std::string, double> GetStats() override;
     void set_distable(const std::unordered_map<long, std::unordered_map<long, float>>* distable);
+    std::unordered_map<long, std::unordered_map<long, float>> generateDistable();
 
 protected:
     bool PIBT(Agent* agent1, Agent* agent2, const std::vector<long>& Sfrom, std::vector<long>& Sto);
-    std::unordered_map<long, std::unordered_map<long, float>> generateDistable();
     bool checkOccupied(long v, const std::vector<long>& Sto);
     Agent* mayPush(long v,const std::vector<long> &Sfrom, const std::vector<long>& Sto);
 
