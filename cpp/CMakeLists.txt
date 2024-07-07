@@ -19,6 +19,8 @@ include_directories(DIRECTORY
 
 add_library(${PROJECT_NAME} SHARED
   ${ALL_SRCS}
+        source/mapf_pibt.cpp
+        ../../../../../../mapf_pibt.hpp
 )
 
 set(test_cpp_dir "test/")
