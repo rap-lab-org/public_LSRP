@@ -29,6 +29,8 @@ namespace raplab{
         _tlimit = time_limit;
         _wH = wH;
         _nAgent = _vo.size();
+        // Pibt planner
+        planner.SetGraphPtr(_graph);
         _Init();
         if ( DEBUG_MPMstar ) { std::cout << "[DEBUG] after init..." << std::endl; }
 
@@ -161,10 +163,16 @@ namespace raplab{
         return _stats;
     } ;
     void MPMstar::_GetNgh(const long &sid, std::vector<std::vector<long>> *out) {
-         out->clear();
+        out->clear();
         const auto& colSet = _states[sid].colSet;
         if(!colSet.empty()){
+            std::vector<std::vector<long>> pibt_policy = Pibt_process(colSet, sid);
+            if(pibt_policy.empty()){
+                _GetLimitNgh(sid,out);
+                return;
+            }else{
 
+            }
         } else {
             std::pair<std::unordered_map<int, int>, std::vector<std::vector<long>>> col_policy = _Pibt_policy[sid];
             //if (col_policy)
@@ -172,8 +180,18 @@ namespace raplab{
     }
 
     std::vector<std::vector<long>> MPMstar::Pibt_process(const std::unordered_map<int, int> colSet, const long &sid) {
-        std::vector<std::vector<long>> a;
-        return a;
+        std::vector<std::vector<long>> pibt_policy;
+        std::vector<long> start;
+        std::vector<long> goal;
+        // generate folloing policy
+        std::unordered_map<int, MstarPolicy> colPolicies;
+        int newId = 0;
+        for (long agentId : colSet) {
+            colPolicies[newId] = _policies.at(agentId);
+            ++newId;
+        }
+
+        return pibt_policy;
     }
 
     void MPMstar::_GetPibtNgh(std::pair<std::unordered_map<int, int>, std::vector<std::vector<long>>> colSet_and_vec,

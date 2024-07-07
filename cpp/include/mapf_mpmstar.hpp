@@ -131,6 +131,7 @@ void CompileHelper();
          */
         virtual CostVec _MoveFromGoalCost(const int& ri, long sid) ;
 
+        raplab::Pibt planner;
         size_t _nAgent = 0;
         std::chrono::time_point<std::chrono::steady_clock> _t0;
         double _tlimit; // the allowed time for planning.
