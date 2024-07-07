@@ -52,6 +52,8 @@ int TestPibt(){
     planner.SetGraphPtr(&g);
     planner._Solve(starts, goals, time_limit, 1.0, nullptr);
     auto plan = planner.GetPlan();
+    auto cost = planner.GetPlanCost();
+    std::cout<<" The SOC is "<<cost[0]<<std::endl;
     for (auto path: plan) {
         std::cout << " path = " << path << std::endl;
     }
