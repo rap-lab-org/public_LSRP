@@ -20,7 +20,8 @@
 						2,
 						3,
 						4,
-						5
+						5,
+						6
 					]
 				}
 			],
@@ -40,7 +41,8 @@
 						2,
 						3,
 						4,
-						5
+						5,
+						6
 					]
 				}
 			],
@@ -49,42 +51,49 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "cppraplab::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-cppraplab-Debug-b8781a7ea9f46cc1a3ea.json",
+					"jsonFile" : "target-cppraplab-Debug-4317d600e78cbdb958f2.json",
 					"name" : "cppraplab",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "test_astar::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-test_astar-Debug-2a232231a0629789a6dd.json",
+					"jsonFile" : "target-test_astar-Debug-391b4e1c0ff250f5b8ce.json",
 					"name" : "test_astar",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "test_dijkstra::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-test_dijkstra-Debug-0a3a163349c125c8b600.json",
+					"jsonFile" : "target-test_dijkstra-Debug-ec8419b4793267007096.json",
 					"name" : "test_dijkstra",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "test_graph::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-test_graph-Debug-271f393b7b155f39a75c.json",
+					"jsonFile" : "target-test_graph-Debug-e56f5a3eb2f2a12022ab.json",
 					"name" : "test_graph",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
+					"id" : "test_mapf_mpmstar::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-test_mapf_mpmstar-Debug-d7245a1cc454f8ea8ce1.json",
+					"name" : "test_mapf_mpmstar",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
 					"id" : "test_mapf_mstar::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-test_mapf_mstar-Debug-3fa464931838430cff6e.json",
+					"jsonFile" : "target-test_mapf_mstar-Debug-e59d8ac35e3bd7bbbc63.json",
 					"name" : "test_mapf_mstar",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "test_mapf_pibt::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-test_mapf_pibt-Debug-37c53b4b4575bee6c946.json",
+					"jsonFile" : "target-test_mapf_pibt-Debug-e0cb22f6ba34ef4e4bf8.json",
 					"name" : "test_mapf_pibt",
 					"projectIndex" : 0
 				}

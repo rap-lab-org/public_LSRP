@@ -2,10 +2,10 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "test_dijkstra.exe"
+			"path" : "test_mapf_mpmstar.exe"
 		},
 		{
-			"path" : "test_dijkstra.pdb"
+			"path" : "test_mapf_mpmstar.pdb"
 		}
 	],
 	"backtrace" : 1,
@@ -29,13 +29,13 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 36,
+				"line" : 38,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 44,
+				"line" : 46,
 				"parent" : 0
 			},
 			{
@@ -83,7 +83,7 @@
 			"id" : "cppraplab::@6890427a1f51a3e7e1df"
 		}
 	],
-	"id" : "test_dijkstra::@6890427a1f51a3e7e1df",
+	"id" : "test_mapf_mpmstar::@6890427a1f51a3e7e1df",
 	"link" : 
 	{
 		"commandFragments" : 
@@ -108,8 +108,8 @@
 		],
 		"language" : "CXX"
 	},
-	"name" : "test_dijkstra",
-	"nameOnDisk" : "test_dijkstra.exe",
+	"name" : "test_mapf_mpmstar",
+	"nameOnDisk" : "test_mapf_mpmstar.exe",
 	"paths" : 
 	{
 		"build" : ".",
@@ -133,7 +133,7 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "test/test_dijkstra.cpp",
+			"path" : "test/test_mapf_mpmstar.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{

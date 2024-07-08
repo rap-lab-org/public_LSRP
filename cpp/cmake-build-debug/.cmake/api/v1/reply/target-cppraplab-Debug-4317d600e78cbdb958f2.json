@@ -81,7 +81,9 @@
 				7,
 				8,
 				9,
-				12
+				10,
+				13,
+				14
 			]
 		}
 	],
@@ -124,15 +126,18 @@
 				7,
 				8,
 				9,
-				12
+				10,
+				13,
+				14
 			]
 		},
 		{
 			"name" : "Header Files",
 			"sourceIndexes" : 
 			[
-				10,
-				11
+				11,
+				12,
+				15
 			]
 		}
 	],
@@ -154,6 +159,12 @@
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
 			"path" : "source/mapf_mpmstar.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "source/mapf_mpmstar_v2.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
@@ -213,6 +224,17 @@
 			"compileGroupIndex" : 0,
 			"path" : "test/test_mapf_pibt.cpp",
 			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "test/test_mapf_mpmstar.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "include/mapf_mpmstar_v2.hpp",
+			"sourceGroupIndex" : 1
 		}
 	],
 	"type" : "SHARED_LIBRARY"

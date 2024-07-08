@@ -5,8 +5,8 @@
  *******************************************/
 
 
-#ifndef SHUAIZHOU_BASIC_MAPF_MPMSTAR_H_
-#define SHUAIZHOU_BASIC_MAPF_MPMSTAR_H_
+#ifndef SHUAIZHOU_BASIC_MAPF_MPMSTARV2_H_
+#define SHUAIZHOU_BASIC_MAPF_MPMSTARV2_H_
 
 #include "mapf_util.hpp"
 #include "mapf_mstar.hpp"
@@ -24,7 +24,7 @@ namespace raplab{
 #define DEBUG_MPMstar 0
 #define MAX_NGH_SIZE 1e7 \
 std::ostream& operator<<(std::ostream& os, MState& state);
-void CompileHelper();
+    void CompileHelper();
 
 /**
  * @brief
@@ -75,15 +75,20 @@ void CompileHelper();
         virtual bool _getMaxPibtngh(std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> policies,
                                     const long& sid, std::vector< std::vector<long> >* out);
         /**
+         * @brief
+         */
+        virtual  bool _getAllPibtngh(std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> policies,
+                                     const long &sid, std::vector<std::vector<long>> *out) ;
+        /**
         * @brief
         */
         virtual bool _GetPibtNgh(std::vector<int> Pibt_agent, std::vector<std::vector<long>> pibt_policy,
-        const long& sid, std::vector< std::vector<long> >* out);
+                                 const long& sid, std::vector< std::vector<long> >* out);
         /**
          * @brief
          */
-         virtual void _UnitePolicy(std::unordered_map<int, int> colSet,std::vector<std::vector<long>> pibt_policy,
-                                   std::vector<long> jv);
+        virtual void _UnitePolicy(std::unordered_map<int, int> colSet,std::vector<std::vector<long>> pibt_policy,
+                                  std::vector<long> jv);
         /**
          * @brief
          */
@@ -180,6 +185,7 @@ void CompileHelper();
         double _wH = 1.0;
         std::vector< std::vector<long> > _sol_path;
         std::unordered_map<std::vector<long> , std::unordered_map<std::vector<int>, std::vector<std::vector<long>>>> _Pibt_policy;
+        bool _solution_found;
 
     };
 

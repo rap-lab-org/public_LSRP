@@ -3,7 +3,7 @@
  * All Rights Reserved.
  *******************************************/
 
-#include "mapf_mpmstar.hpp"
+#include "mapf_mpmstar_v2.hpp"
 #include "mapf_mstar.hpp"
 #include "mapf_pibt.hpp"
 #include "union_find.hpp"
@@ -568,6 +568,18 @@ namespace raplab{
             std::vector<std::vector<long>> out_i;
             _GetPibtNgh(col, policies.at(col),sid,&out_i);
             out->insert(out->end(), out_i.begin(), out_i.end());
+            out_i.clear();
+        }
+        return true;
+    }
+
+    bool MPMstar::_getAllPibtngh(std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> policies,
+                                 const long &sid, std::vector<std::vector<long>> *out) {
+        for (const auto& policy : policies) {
+            std::vector<std::vector<long>> out_i;
+            _GetPibtNgh(policy.first, policy.second,sid,&out_i);
+            out->insert(out->end(), out_i.begin(), out_i.end());
+            out_i.clear();
         }
         return true;
     }
