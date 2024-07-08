@@ -9,6 +9,7 @@
 #include "union_find.hpp"
 #include <vector>
 #include <unordered_set>
+#include <chrono>
 
 namespace raplab{
 
@@ -44,6 +45,7 @@ namespace raplab{
         _nAgent = _vo.size();
         // Pibt planner
         planner.SetGraphPtr(_graph);
+        _solution_found = false;
         _Init();
         if ( DEBUG_MPMstar ) { std::cout << "[DEBUG] after init..." << std::endl; }
 
@@ -74,6 +76,14 @@ namespace raplab{
             // check for solution
             if (_IfReachGoal(s.jv)) {
                 _stats["success"] = 1;
+                if(!_solution_found){
+                    _solution_found = true;
+                    _reached_goal_id = s.id;
+                } else {
+                    if(s.g[0] < _states[_reached_goal_id].g[0]){
+                        _reached_goal_id = s.id;
+                    }
+                }
                 _reached_goal_id = s.id;
                 // _sol.push_back(s.id); // new solution found.
                 // if (_sol.size() == 1) {
@@ -89,7 +99,7 @@ namespace raplab{
 
             // expand
             std::vector< std::vector<long> > nghs;
-            bool success = _GetLimitNgh(s.id, &nghs);
+            bool success = _GetNgh(s.id, &nghs);
             // std::cout << " after get limited ngh" << std::endl;
             if (!success) {
                 break;
@@ -125,10 +135,14 @@ namespace raplab{
                 // }
 
                 auto ngh_str = jv2str(ngh);
-                if ( (_best.find( ngh_str ) != _best.end()) &&
-                     (_states[_best[ngh_str]].g[0] <= g_ngh[0] ) )
-                {
+                if ((_best.find(ngh_str) != _best.end()) &&
+                    (_states[_best[ngh_str]].g[0] <= g_ngh[0])) {
                     continue;
+                }
+                if (_solution_found) {
+                    if (g_ngh[0] > _states[_reached_goal_id].g[0]) {
+                        continue;
+                    }
                 }
 
                 // add to open.
@@ -185,7 +199,11 @@ namespace raplab{
                 // check if it has pibt policy
                 if (_Pibt_policy.find(jv) != _Pibt_policy.end()) {
                     // has pibt policy
-                    _getMaxPibtngh(_Pibt_policy.at(jv),sid,out);
+                    if (_solution_found){
+                        _getAllPibtngh(_Pibt_policy.at(jv),sid,out);
+                    } else {
+                        _getMaxPibtngh(_Pibt_policy.at(jv), sid, out);
+                    }
                     std::vector<std::vector<long>> ngh;
                     _GetLimitNgh(sid,&ngh);
                     out->insert(out->end(), ngh.begin(), ngh.end());
@@ -199,7 +217,11 @@ namespace raplab{
             }else{
                 // pibt success needs to unite pibt policy
                 _UnitePolicy(colSet, pibt_policy, jv);
-                _getMaxPibtngh(_Pibt_policy.at(jv),sid,out);
+                if (_solution_found){
+                    _getAllPibtngh(_Pibt_policy.at(jv),sid,out);
+                } else {
+                    _getMaxPibtngh(_Pibt_policy.at(jv), sid, out);
+                }
                 std::vector<std::vector<long>> ngh2;
                 _GetLimitNgh(sid,&ngh2);
                 out->insert(out->end(), ngh2.begin(), ngh2.end());
@@ -211,7 +233,11 @@ namespace raplab{
         } else {
             // No needs to plan pibt
             if (_Pibt_policy.find(jv) != _Pibt_policy.end()) {
-                _getMaxPibtngh(_Pibt_policy.at(jv),sid,out);
+                if (_solution_found){
+                    _getAllPibtngh(_Pibt_policy.at(jv),sid,out);
+                } else {
+                    _getMaxPibtngh(_Pibt_policy.at(jv), sid, out);
+                }
                 std::vector<std::vector<long>> ngh3;
                 _GetLimitNgh(sid,&ngh3);
                 out->insert(out->end(), ngh3.begin(), ngh3.end());

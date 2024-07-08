@@ -89,7 +89,7 @@ namespace raplab{
 
             // expand
             std::vector< std::vector<long> > nghs;
-            bool success = _GetLimitNgh(s.id, &nghs);
+            bool success = _GetNgh(s.id, &nghs);
             // std::cout << " after get limited ngh" << std::endl;
             if (!success) {
                 break;

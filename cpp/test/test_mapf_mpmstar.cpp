@@ -4,6 +4,7 @@
  *******************************************/
 
 #include "mapf_mpmstar.hpp."
+#include "mapf_mpmstar_v2.hpp"
 // #include "lattice_xya.hpp"
 #include "debug.hpp"
 #include <iostream>
@@ -20,7 +21,7 @@ int main(){
 
 
 int TestPibt(){
-    std::cout << "####### test_pibt.cpp - TestPibt() Begin #######" << std::endl;
+    std::cout << "####### test_mpmstar.cpp - TestMpmstar() Begin #######" << std::endl;
     // ------------static environment, 3x3, obstacle at (y=0,x=0),(y=0.x=1),(y=0,x=2),(y=1,x=0) Three robots---------
     //   x:0  1  2
     // y ---------------
@@ -57,5 +58,5 @@ int TestPibt(){
     for (auto path: plan) {
         std::cout << " path = " << path << std::endl;
     }
-    std::cout << "####### test_pibt.cpp - TestPibt() End #######" << std::endl;
+    std::cout << "####### test_mpmstar.cpp - TestPibt() End #######" << std::endl;
 }
