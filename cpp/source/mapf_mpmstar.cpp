@@ -168,14 +168,33 @@ namespace raplab{
         if(!colSet.empty()){
             std::vector<std::vector<long>> pibt_policy = Pibt_process(colSet, sid);
             if(pibt_policy.empty()){
-                _GetLimitNgh(sid,out);
+                _GetLimitNgh(sid, out);
                 return;
             }else{
-
+                std::vector<int> col;
+                for (const auto& pair : colSet) {
+                    int agentId = pair.first;
+                    col.push_back(agentId);
+                }
+                std::pair<std::vector<int>, std::vector<std::vector<long>>> colSet_and_vec =
+                        std::make_pair(col,pibt_policy);
+                _GetPibtNgh(colSet_and_vec,sid,out);
+                return;
             }
         } else {
-            std::pair<std::unordered_map<int, int>, std::vector<std::vector<long>>> col_policy = _Pibt_policy[sid];
-            //if (col_policy)
+            if (_Pibt_policy.find(sid) != _Pibt_policy.end()) {
+                // key exist  pibt + optimal policy
+                std::pair<std::vector<int>, std::vector<std::vector<long>>> col_policy = _Pibt_policy.at(sid);
+                std::vector<std::vector<long>> ngh1;
+                _GetLimitNgh(sid, out);
+                _GetPibtNgh(col_policy,sid,&ngh1);
+                out->insert(out->end(), ngh1.begin(), ngh1.end());
+                return;
+            } else {
+                // pibt policy not exists, optimal policy
+                _GetLimitNgh(sid, out);
+                return;
+            }
         }
     }
 
@@ -183,20 +202,42 @@ namespace raplab{
         std::vector<std::vector<long>> pibt_policy;
         std::vector<long> start;
         std::vector<long> goal;
+        const auto& Sfrom = _states[sid].jv;
         // generate folloing policy
         std::unordered_map<int, MstarPolicy> colPolicies;
         int newId = 0;
-        for (long agentId : colSet) {
+        for (const auto& pair : colSet) {
+            int agentId = pair.first;
+            start.push_back(Sfrom[agentId]);
+            goal.push_back(_vd[agentId]);
             colPolicies[newId] = _policies.at(agentId);
             ++newId;
         }
+        bool result = planner._Solve(start,goal,_tlimit,1.0,&colPolicies);
+        if (result){
+            pibt_policy = planner.GetPlan();
+            pibt_policy.erase(pibt_policy.begin());
+            return pibt_policy;
+        } else {
+            // not success return a blank vector;
+            return pibt_policy;
+        }
+
+
 
         return pibt_policy;
     }
 
-    void MPMstar::_GetPibtNgh(std::pair<std::unordered_map<int, int>, std::vector<std::vector<long>>> colSet_and_vec,
+    void MPMstar::_GetPibtNgh(std::pair<std::vector<int>, std::vector<std::vector<long>>> colSet_and_vec,
                               const long &sid, std::vector<std::vector<long>> *out) {
-        return;
+        std::vector<int> Pibt_agent = colSet_and_vec.first;
+        std::vector<std::vector<long>> pibt_polocy = colSet_and_vec.second;
+        std::vector<long> pibt_sto = pibt_polocy[0];
+        const auto& Sfrom = _states[sid].jv;
+        std::vector< std::vector<long> > ngh_vec;
+        ngh_vec.resize(_nAgent);
+        
+
     };
 
     bool MPMstar::_GetLimitNgh(const long& sid, std::vector< std::vector<long> >* out)

@@ -61,7 +61,7 @@ void CompileHelper();
         virtual bool _GetLimitNgh(const long& sid, std::vector< std::vector<long> >* out);
         virtual void _GetNgh(const long& sid, std::vector< std::vector<long> >* out);
         virtual std::vector<std::vector<long>> Pibt_process(const std::unordered_map<int, int> colSet, const long& sid);
-        virtual void _GetPibtNgh(std::pair<std::unordered_map<int, int>, std::vector<std::vector<long>>> colSet_and_vec,
+        virtual void _GetPibtNgh(std::pair<std::vector<int>, std::vector<std::vector<long>>> colSet_and_vec,
         const long& sid, std::vector< std::vector<long> >* out);
         /**
          * @brief
@@ -154,7 +154,7 @@ void CompileHelper();
         long _reached_goal_id = -1;
         double _wH = 1.0;
         std::vector< std::vector<long> > _sol_path;
-        std::unordered_map<long , std::pair<std::unordered_map<int, int>, std::vector<std::vector<long>>>> _Pibt_policy;
+        std::unordered_map<long , std::pair<std::vector<int>, std::vector<std::vector<long>>>> _Pibt_policy;
 
     };
 
