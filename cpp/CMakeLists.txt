@@ -23,8 +23,6 @@ add_library(${PROJECT_NAME} SHARED
         include/mapf_pibt.hpp
         source/mapf_mpmstar.cpp
         source/mapf_mstar.cpp
-        include/mapf_mpmstar.hpp
-        include/mapf_mpmstar_v2.hpp
         include/graph_io.hpp
         test/test_movingai.cpp
 )

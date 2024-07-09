@@ -45,7 +45,7 @@ int Pibt::Solve(std::vector<long> &starts, std::vector<long> &goals, double time
     for (size_t i = 0; i < starts.size(); ++i) {
         agents_.emplace_back(i, 1 - i * gap);
     }
-    std::cout<<"debugging True solve"<<std::endl;
+    //std::cout<<"debugging True solve"<<std::endl;
     // Main function
     while (true) {
         std::vector<long> Sfrom = joint_policy_.back();
@@ -197,7 +197,7 @@ bool Pibt::generatePolicy() {
 //  solve function
 int Pibt::_Solve(std::vector<long> &starts, std::vector<long> &goals, double time_limit, double eps,
                  std::unordered_map<int, MstarPolicy> *policies) {
-     std::cout<<"debugging Main solve"<<std::endl;
+     //std::cout<<"debugging Main solve"<<std::endl;
      v_init_ = starts;
      v_f_ = goals;
      _tlimit = time_limit;

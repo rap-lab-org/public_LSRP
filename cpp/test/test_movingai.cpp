@@ -22,25 +22,25 @@ int main(){
 
 int TestMPMstar_movingai(){
     std::cout << "####### Moving ai test Begin #######" << std::endl;
-    std::string MapPath = "C:\\Users\\David Zhou\\Documents\\GitHub\\public_LSRP\\data\\maps\\random-32-32-20.map";
-    std::string ScenPath= "C:\\Users\\David Zhou\\Documents\\GitHub\\public_LSRP\\data\\scen\\random-32-32-20-scen";
+    std::string MapPath = "C:/Users/David Zhou/Documents/GitHub/public_LSRP/data/maps/random-32-32-20.map";
+    std::string ScenPath= "C:/Users/David Zhou/Documents/GitHub/public_LSRP/data/scen/random-32-32-20-scen/random-32-32-20-random-1.scen";
     raplab::Grid2d g;
     std::vector<std::vector<double>> occupancy_grid;
     raplab::LoadMap_MovingAI(MapPath,&occupancy_grid);
     g.SetOccuGridPtr(&occupancy_grid);
-    // not using it now
     double time_limit = 300;
-    std::vector<long> starts;
-    std::vector<long> goals;
-    int agentNum = 10;
-    std::cout<<"Agent number: "<<agentNum<<std::endl;
-    raplab::LoadScenarios(ScenPath,10,starts,goals);
-    raplab:: MPMstarV2 planner;
-    planner.SetGraphPtr(&g);
-    planner.Solve(starts, goals, time_limit, 1.0);
-    auto plan = planner.GetPlan();
-    auto cost = planner.GetPlanCost();
-    std::cout<<" SOC :"<<cost[0]<<std::endl;
+    for (int n = 0; n <= 50; n += 2) {
+        std::vector<long> starts;
+        std::vector<long> goals;
+        std::cout<<"Agent number: "<<n<<std::endl;
+        raplab::LoadScenarios(ScenPath,10,&starts,&goals);
+        raplab:: MPMstar planner;
+        planner.SetGraphPtr(&g);
+        planner.Solve(starts, goals, time_limit, 1.0);
+        auto plan = planner.GetPlan();
+        auto cost = planner.GetPlanCost();
+        std::cout<<" SOC :"<<cost[0]<<std::endl;
+    }
     /*
     for (auto path: plan) {
         std::cout << " path = " << path << std::endl;

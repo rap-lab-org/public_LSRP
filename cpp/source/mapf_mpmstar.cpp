@@ -189,11 +189,7 @@ namespace raplab{
                 if (_Pibt_policy.find(jv) != _Pibt_policy.end()) {
                     // has pibt policy
                     _getMaxPibtngh(_Pibt_policy.at(jv),sid,out);
-                    std::vector<std::vector<long>> ngh;
-                    _GetLimitNgh(sid,&ngh);
-                    out->insert(out->end(), ngh.begin(), ngh.end());
                     _RemoveDuplicates(out);
-                    ngh.clear();
                     return true;
                 } else {
                     // no pibt policy
@@ -203,11 +199,7 @@ namespace raplab{
                 // pibt success needs to unite pibt policy
                 _UnitePolicy(colSet, pibt_policy, jv);
                 _getMaxPibtngh(_Pibt_policy.at(jv),sid,out);
-                std::vector<std::vector<long>> ngh2;
-                _GetLimitNgh(sid,&ngh2);
-                out->insert(out->end(), ngh2.begin(), ngh2.end());
                 _RemoveDuplicates(out);
-                ngh2.clear();
                 return true;
                 // Todo get max.size col set's policy and add _GetLimitNgh neighbours together
             }

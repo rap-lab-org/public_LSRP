@@ -24,8 +24,8 @@ int LoadCoordDIMAC(std::string coord_file, std::vector< std::vector<double> >* o
 
 int LoadMap_MovingAI(std::string map_file_path, std::vector<std::vector<double> >* output) ;
 
-int LoadScenarios(std::string filePath, int n, std::vector<long> starts,
-                                                              std::vector<long> goals);
+int LoadScenarios(std::string filePath, int n, std::vector<long>* starts,
+                                                              std::vector<long>* goals);
 
 } // end namespace raplab
 

@@ -194,38 +194,52 @@ int LoadMap_MovingAI(
 };
 
 
-int LoadScenarios(std::string filePath, int n,std::vector<long> starts,
-                                                              std::vector<long> goals) {
-    std::ifstream infile(filePath);
-    std::string line;
-    int lineCount = 0;
-    bool firstLine = true;
+    int LoadScenarios(std::string filePath, int n, std::vector<long>* starts, std::vector<long>* goals) {
+        std::ifstream infile(filePath);
+        std::string line;
+        int lineCount = 0;
+        bool firstLine = true;
 
-    while (std::getline(infile, line) && lineCount < n) {
-        if (firstLine) {
-            firstLine = false; // Skip the version line
-            continue;
+        // 检查文件是否成功打开
+        if (!infile.is_open()) {
+            std::cerr << "Failed to open file: " << filePath << std::endl;
+            return -1;
         }
 
-        std::istringstream iss(line);
-        int bucket, mapWidth, mapHeight, startX, startY, goalX, goalY;
-        std::string mapFile;
-        double optimalLength;
+        while (std::getline(infile, line) && lineCount < n) {
+            if (firstLine) {
+                firstLine = false; // Skip the version line
+                continue;
+            }
 
-        if (!(iss >> bucket >> mapFile >> mapWidth >> mapHeight >> startX >> startY >> goalX >> goalY
-                  >> optimalLength)) {
-            break;
+            std::istringstream iss(line);
+            int bucket, mapWidth, mapHeight, startX, startY, goalX, goalY;
+            std::string mapFile;
+            double optimalLength;
+
+            if (!(iss >> bucket >> mapFile >> mapWidth >> mapHeight >> startX >> startY >> goalX >> goalY >> optimalLength)) {
+                std::cerr << "Failed to parse line: " << line << std::endl;
+                break;
+            }
+
+            // Convert (x, y) to node ID
+            long startID = startY * mapWidth + startX;
+            long goalID = goalY * mapWidth + goalX;
+
+            // 添加一些调试信息
+            //std::cout << "Parsed startID: " << startID << ", goalID: " << goalID << std::endl;
+
+            starts->push_back(startID);
+            goals->push_back(goalID);
+
+            lineCount++;
         }
 
-        // Convert (x, y) to node ID
-        long startID = startY * mapWidth + startX;
-        long goalID = goalY * mapWidth + goalX;
+        /* 检查是否正确读取了指定数量的行
+        if (lineCount < n) {
+            std::cerr << "Warning: Only " << lineCount << " lines were read. Expected: " << n << std::endl;
+        }*/
 
-        starts.push_back(startID);
-        goals.push_back(goalID);
-
-        lineCount++;
+        return 1;
     }
-    return 1;
-};
 } // end namespace raplab
