@@ -70,6 +70,12 @@ namespace raplab{
             MState& s = _states[ _open.begin()->second ];
             _open.erase(_open.begin());
 
+            if ( DEBUG_MPMstar ) { std::cout << "[DEBUG] Current state..." << s.id <<std::endl; }
+            if (DEBUG_MPMstar) {
+                if (s.id == 43) {
+                    std::cout << "You bugger boy" << std::endl;
+                }
+            }
 
             // check for solution
             if (_IfReachGoal(s.jv)) {
@@ -153,6 +159,7 @@ namespace raplab{
 
             }
         } // end while loop
+        if ( DEBUG_MPMstar ) { std::cout << "[DEBUG] Solution not found but run out open?..." << std::endl; }
 
         std::vector< std::vector<long> > jp;
         _BuildJointPath(_reached_goal_id, &jp);
@@ -179,6 +186,11 @@ namespace raplab{
         return _stats;
     } ;
     bool MPMstar::_GetNgh(const long &sid, std::vector<std::vector<long>> *out) {
+        if (DEBUG_MPMstar) {
+            if (sid == 43) {
+                std::cout << "You bugger boy" << std::endl;
+            }
+        }
         out->clear();
         const auto& colSet = _states[sid].colSet;
         const auto& jv = _states[sid].jv;
@@ -206,7 +218,9 @@ namespace raplab{
         } else {
             // No needs to plan pibt
             if (_Pibt_policy.find(jv) != _Pibt_policy.end()) {
-                _getMaxPibtngh(_Pibt_policy.at(jv),sid,out);
+                if(DEBUG_MPMstar){std::cout<<"No colset but policy happened"<<std::endl;}
+                std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> policies = _Pibt_policy.at(jv);
+                _getMaxPibtngh(policies,sid,out);
                 std::vector<std::vector<long>> ngh3;
                 _GetLimitNgh(sid,&ngh3);
                 out->insert(out->end(), ngh3.begin(), ngh3.end());
@@ -273,12 +287,14 @@ namespace raplab{
         std::vector<long> jv = out->at(0);
         std::vector<std::vector<long>> kid_policy;
         std::copy(pibt_policy.begin() + 1, pibt_policy.end(), std::back_inserter(kid_policy));
-        if (_Pibt_policy.find(jv) != _Pibt_policy.end()) {
-            _Pibt_policy[jv][Pibt_agent] = kid_policy;
-        } else {
-            std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> colAndPolicy;
-            colAndPolicy[Pibt_agent] = kid_policy;
-            _Pibt_policy[jv] = colAndPolicy;
+        if (!kid_policy.empty()) {
+            if (_Pibt_policy.find(jv) != _Pibt_policy.end()) {
+                _Pibt_policy[jv][Pibt_agent] = kid_policy;
+            } else {
+                std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> colAndPolicy;
+                colAndPolicy[Pibt_agent] = kid_policy;
+                _Pibt_policy[jv] = colAndPolicy;
+            }
         }
         return true;
     };
@@ -547,6 +563,11 @@ namespace raplab{
 
     bool MPMstar::_getMaxPibtngh(std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> policies,
                                  const long &sid, std::vector<std::vector<long>> *out) {
+        if (DEBUG_MPMstar) {
+            if (sid == 43) {
+                std::cout << "You bugger boy" << std::endl;
+            }
+        }
         std::vector<std::vector<int>> Maxcols;
         size_t max_size = 0;
         for (const auto& policy : policies) {

@@ -304,12 +304,14 @@ namespace raplab{
         std::vector<long> jv = out->at(0);
         std::vector<std::vector<long>> kid_policy;
         std::copy(pibt_policy.begin() + 1, pibt_policy.end(), std::back_inserter(kid_policy));
-        if (_Pibt_policy.find(jv) != _Pibt_policy.end()) {
-            _Pibt_policy[jv][Pibt_agent] = kid_policy;
-        } else {
-            std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> colAndPolicy;
-            colAndPolicy[Pibt_agent] = kid_policy;
-            _Pibt_policy[jv] = colAndPolicy;
+        if (!kid_policy.empty()) {
+            if (_Pibt_policy.find(jv) != _Pibt_policy.end()) {
+                _Pibt_policy[jv][Pibt_agent] = kid_policy;
+            } else {
+                std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> colAndPolicy;
+                colAndPolicy[Pibt_agent] = kid_policy;
+                _Pibt_policy[jv] = colAndPolicy;
+            }
         }
         return true;
     };
