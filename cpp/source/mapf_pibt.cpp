@@ -45,14 +45,20 @@ int Pibt::Solve(std::vector<long> &starts, std::vector<long> &goals, double time
     for (size_t i = 0; i < starts.size(); ++i) {
         agents_.emplace_back(i, 1 - i * gap);
     }
+    debug_counter = 0;
     //std::cout<<"debugging True solve"<<std::endl;
     // Main function
     while (true) {
+        if (DEBUG_PIBT){
+            debug_counter += 1;
+            std::cout<< "counting:"<<debug_counter<<std::endl;
+        }
         std::vector<long> Sfrom = joint_policy_.back();
         std::vector<long> Sto(Sfrom.size(), -1);
 
         if (Sfrom == goals) {
             // find solution
+            if (DEBUG_PIBT){std::cout<<"solution found"<<std::endl;}
             return 1;
         }
         // update priority
@@ -77,6 +83,7 @@ int Pibt::Solve(std::vector<long> &starts, std::vector<long> &goals, double time
         // if Sto already exist in the joint_policy: fail
         if (std::find(joint_policy_.begin(), joint_policy_.end(), Sto) != joint_policy_.end()) {
             // Fail case
+            //std::cout<<"fail bro, gotta do some"<<std::endl;
             return -1; // Return appropriate fail value
         }
         joint_policy_.push_back(Sto);
@@ -84,15 +91,27 @@ int Pibt::Solve(std::vector<long> &starts, std::vector<long> &goals, double time
 }
 
 bool Pibt::PIBT(Agent *agent1, Agent *agent2, const std::vector<long> &Sfrom, std::vector<long> &Sto) {
+    if (DEBUG_PIBT) {
+        if (debug_counter == 4){
+            std::cout<<"do some check bro"<<std::endl;
+        }
+    }
     std::vector<long> C = _graph->GetSuccs(Sfrom[agent1->id]);
     C.push_back(Sfrom[agent1->id]);
     std::shuffle(C.begin(), C.end(), rng_);
     //sort node by dis_table value
     auto &policy = _policies.at(agent1->id);
     std::sort(C.begin(), C.end(), [&](long a, long b) {
-        return policy.H(a) > policy.H(b);
+        return policy.H(a) < policy.H(b);
     });
 
+    if(DEBUG_PIBT){
+        if (agent1->id == 1) {
+            for (long v: C) {
+                std::cout << agent1->id << ": " << v << ": " << policy.H(v) << std::endl;
+            }
+        }
+    }
 
     for (long v: C){
         if(checkOccupied(v, Sto)){
@@ -153,7 +172,7 @@ void Pibt::set_policy(const std::unordered_map<int, MstarPolicy> *policy) {
     if (policy != nullptr) {
         _policies = *policy;
     } else {
-        std::cout<<"debugging generate Distable"<<std::endl;
+        //std::cout<<"debugging generate Distable"<<std::endl;
         generatePolicy();
     }
 }
@@ -184,9 +203,9 @@ bool Pibt::generatePolicy() {
     for (int ri = 0; ri < v_init_.size(); ri++) {
         _policies[ri] = MstarPolicy();
         _policies[ri].SetGraphPtr(_graph);
-        double remain_time = _tlimit - std::chrono::duration<double>(
-                std::chrono::steady_clock::now() - _t0).count();
-        bool good = _policies[ri].Compute(v_f_[ri], remain_time);
+        //double remain_time = _tlimit - std::chrono::duration<double>(
+        //        std::chrono::steady_clock::now() - _t0).count();
+        bool good = _policies[ri].Compute(v_f_[ri], _tlimit);
         if (!good) { // timeout for policy computation.
             return false;
         }

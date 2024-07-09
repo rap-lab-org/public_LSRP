@@ -29,15 +29,15 @@ int TestMPMstar_movingai(){
     raplab::LoadMap_MovingAI(MapPath,&occupancy_grid);
     g.SetOccuGridPtr(&occupancy_grid);
     double time_limit = 300;
-    //for (int n = 12; n <= 50; n += 2) {
-    int n = 12;
+    //for (int n = 2; n <= 20; n += 2) {
+    int n = 20;
         std::vector<long> starts;
         std::vector<long> goals;
         std::cout<<"Agent number: "<<n<<std::endl;
-        raplab::LoadScenarios(ScenPath,n,&starts,&goals);
+        raplab::LoadScenarios(ScenPath, n, &starts,&goals);
         raplab:: MPMstar planner;
         planner.SetGraphPtr(&g);
-        planner.Solve(starts, goals, time_limit, 1.0);
+        planner.Solve(starts, goals, time_limit, 1.2);
         auto plan = planner.GetPlan();
         auto cost = planner.GetPlanCost();
         std::cout<<" SOC :"<<cost[0]<<std::endl;

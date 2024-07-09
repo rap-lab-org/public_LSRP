@@ -17,6 +17,7 @@
 #include "mapf_mstar.hpp"
 
 namespace raplab{
+#define DEBUG_PIBT 0
 
 struct Agent
 {
@@ -61,6 +62,7 @@ protected:
     std::vector<long> v_init_;
     std::vector<long>  v_f_;
     double _tlimit;
+    int debug_counter;
     std::chrono::time_point<std::chrono::steady_clock> _t0;
 };
 }

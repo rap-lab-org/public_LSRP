@@ -46,6 +46,7 @@ namespace raplab{
         planner.SetGraphPtr(_graph);
         _Init();
         if ( DEBUG_MPMstar ) { std::cout << "[DEBUG] after init..." << std::endl; }
+        int counter = 0;
 
         // main while loop
         while ( true ) {
@@ -72,8 +73,10 @@ namespace raplab{
 
             if ( DEBUG_MPMstar ) { std::cout << "[DEBUG] Current state..." << s.id <<std::endl; }
             if (DEBUG_MPMstar) {
-                if (s.id == 43) {
-                    std::cout << "You bugger boy" << std::endl;
+                if (s.id == 1) {
+                    std::cout << "count of a state:" <<counter<< std::endl;
+                    const auto& colSet = _states[s.id].colSet;
+                    counter += 1;
                 }
             }
 
@@ -113,12 +116,13 @@ namespace raplab{
                     _BackProp(s.id, colSet);
                     continue;
                 }
+                if (DEBUG_MPMstar){std::cout<<"Col set size: "<< std::endl;}
 
                 // collision-free
                 // get cost vector
                 auto cuv = _GetTransCost(s.jv, ngh, s.id);
                 CostVec g_ngh = s.g + cuv;
-                CostVec f_ngh = g_ngh + _H(ngh); // note that _wH is considered within _H()
+                CostVec f_ngh = g_ngh + _wH * _H(ngh); // note that _wH is considered within _H()
                 // if ( _SolFilter(f_ngh) ) { // dominated by some already found solution.
                 //   continue;
                 // }
@@ -218,7 +222,6 @@ namespace raplab{
         } else {
             // No needs to plan pibt
             if (_Pibt_policy.find(jv) != _Pibt_policy.end()) {
-                if(DEBUG_MPMstar){std::cout<<"No colset but policy happened"<<std::endl;}
                 std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> policies = _Pibt_policy.at(jv);
                 _getMaxPibtngh(policies,sid,out);
                 std::vector<std::vector<long>> ngh3;
@@ -563,11 +566,6 @@ namespace raplab{
 
     bool MPMstar::_getMaxPibtngh(std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> policies,
                                  const long &sid, std::vector<std::vector<long>> *out) {
-        if (DEBUG_MPMstar) {
-            if (sid == 43) {
-                std::cout << "You bugger boy" << std::endl;
-            }
-        }
         std::vector<std::vector<int>> Maxcols;
         size_t max_size = 0;
         for (const auto& policy : policies) {
@@ -578,8 +576,10 @@ namespace raplab{
         for (const auto& policy : policies) {
             if (policy.first.size() == max_size) {
                 Maxcols.push_back(policy.first);
+                break;
             }
         }
+        //debugger
         for (const auto& col : Maxcols){
             std::vector<std::vector<long>> out_i;
             _GetPibtNgh(col, policies.at(col),sid,&out_i);
