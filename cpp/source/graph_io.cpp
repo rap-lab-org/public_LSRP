@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <sstream>
 #include <fstream>
 #include <stdlib.h>
 
@@ -193,5 +194,38 @@ int LoadMap_MovingAI(
 };
 
 
+int LoadScenarios(std::string filePath, int n,std::vector<long> starts,
+                                                              std::vector<long> goals) {
+    std::ifstream infile(filePath);
+    std::string line;
+    int lineCount = 0;
+    bool firstLine = true;
 
+    while (std::getline(infile, line) && lineCount < n) {
+        if (firstLine) {
+            firstLine = false; // Skip the version line
+            continue;
+        }
+
+        std::istringstream iss(line);
+        int bucket, mapWidth, mapHeight, startX, startY, goalX, goalY;
+        std::string mapFile;
+        double optimalLength;
+
+        if (!(iss >> bucket >> mapFile >> mapWidth >> mapHeight >> startX >> startY >> goalX >> goalY
+                  >> optimalLength)) {
+            break;
+        }
+
+        // Convert (x, y) to node ID
+        long startID = startY * mapWidth + startX;
+        long goalID = goalY * mapWidth + goalX;
+
+        starts.push_back(startID);
+        goals.push_back(goalID);
+
+        lineCount++;
+    }
+    return 1;
+};
 } // end namespace raplab

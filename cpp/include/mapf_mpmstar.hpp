@@ -55,6 +55,8 @@ void CompileHelper();
          * @brief Get statistics as a vector of double float numbers.
          */
         virtual std::unordered_map<std::string, double> GetStats() override ;
+
+
     protected:
         /**
          * @brief
@@ -176,6 +178,7 @@ void CompileHelper();
         // MOMAPFResult _result;
         double _wait_cost = 1;
         long _reached_goal_id = -1;
+        //double _runtime;
         double _wH = 1.0;
         std::vector< std::vector<long> > _sol_path;
         std::unordered_map<std::vector<long> , std::unordered_map<std::vector<int>, std::vector<std::vector<long>>>> _Pibt_policy;

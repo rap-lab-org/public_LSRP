@@ -24,8 +24,9 @@ add_library(${PROJECT_NAME} SHARED
         source/mapf_mpmstar.cpp
         source/mapf_mstar.cpp
         include/mapf_mpmstar.hpp
-        test/test_mapf_mpmstar.cpp
         include/mapf_mpmstar_v2.hpp
+        include/graph_io.hpp
+        test/test_movingai.cpp
 )
 
 set(test_cpp_dir "test/")
@@ -39,7 +40,7 @@ foreach(test_cpp_file ${test_cpp_files})
           source/mapf_pibt.cpp
           source/mapf_mpmstar.cpp
           source/mapf_mpmstar_v2.cpp
-          test/test_mapf_mpmstar.cpp
+          test/test_movingai.cpp
   )
 
   # TARGET_INCLUDE_DIRECTORIES(${test_cpp_name} PUBLIC include/common)

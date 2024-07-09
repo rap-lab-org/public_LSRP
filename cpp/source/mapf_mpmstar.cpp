@@ -75,6 +75,9 @@ namespace raplab{
             if (_IfReachGoal(s.jv)) {
                 _stats["success"] = 1;
                 _reached_goal_id = s.id;
+                //_runtime = std::chrono::duration<double>(std::chrono::steady_clock::now() - _t0).count();
+                std::cout<<"RunTime: "<<std::chrono::duration<double>(std::chrono::steady_clock::now() - _t0).count()
+                <<std::endl;
                 // _sol.push_back(s.id); // new solution found.
                 // if (_sol.size() == 1) {
                 //   // first sol

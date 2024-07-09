@@ -49,12 +49,12 @@ int TestMPMstar(){
     // the length of starts shows how many agents are there.
     std::vector<long> goals({5,6,8});
 
-    raplab:: MPMstarV2 planner;
+    raplab:: MPMstar planner;
     planner.SetGraphPtr(&g);
     planner.Solve(starts, goals, time_limit, 1.0);
     auto plan = planner.GetPlan();
     auto cost = planner.GetPlanCost();
-    std::cout<<" The SOC is "<<cost[0]<<std::endl;
+    std::cout<<" The SOC "<<cost[0]<<std::endl;
     for (auto path: plan) {
         std::cout << " path = " << path << std::endl;
     }
