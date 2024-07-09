@@ -22,7 +22,6 @@
 namespace raplab{
 
 #define DEBUG_MPMstar 0
-#define MAX_NGH_SIZE 1e7 \
 std::ostream& operator<<(std::ostream& os, MState& state);
 void CompileHelper();
 

@@ -23,24 +23,23 @@
 namespace raplab{
 
 #define DEBUG_MPMstar 0
-#define MAX_NGH_SIZE 1e7 \
 std::ostream& operator<<(std::ostream& os, MState& state);
     void CompileHelper();
 
 /**
  * @brief
  */
-    class MPMstar : public MAPFPlanner
+    class MPMstarV2 : public MAPFPlanner
     {
     public:
         /**
          *
          */
-        MPMstar() ;
+        MPMstarV2() ;
         /**
          *
          */
-        virtual ~MPMstar() ;
+        virtual ~MPMstarV2() ;
         /**
          * @brief
          */
@@ -194,4 +193,4 @@ std::ostream& operator<<(std::ostream& os, MState& state);
 } // end namespace rzq
 
 
-#endif  // ZHONGQIANGREN_BASIC_MAPF_MSTAR_H_
+#endif  // SHUAIZHOU_BASIC_MAPF_MPMSTARV2_H_

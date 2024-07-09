@@ -28,13 +28,13 @@ namespace raplab{
 ////////////////////// Mstar ///////////////////////
 ////////////////////////////////////////////////////////////////////
 
-    MPMstar::MPMstar() {};
+    MPMstarV2::MPMstarV2() {};
 
-    MPMstar::~MPMstar() {};
+    MPMstarV2::~MPMstarV2() {};
 
     // virtual int Solve(std::vector<long>& starts, std::vector<long>& goals, double time_limit, double eps) = 0;
 
-    int MPMstar::Solve(
+    int MPMstarV2::Solve(
             std::vector<long>& starts, std::vector<long>& goals, double time_limit, double wH)
     {
         // init search
@@ -176,20 +176,20 @@ namespace raplab{
         return 1;
     };
 
-    std::vector< std::vector<long> > MPMstar::GetPlan(long nid) {
+    std::vector< std::vector<long> > MPMstarV2::GetPlan(long nid) {
         // the input nid is useless.
         return _sol_path;
     };
 
-    CostVec MPMstar::GetPlanCost(long nid) {
+    CostVec MPMstarV2::GetPlanCost(long nid) {
         // the input nid is useless.
         return _states[_reached_goal_id].g;
     };
 
-    std::unordered_map<std::string, double> MPMstar::GetStats() {
+    std::unordered_map<std::string, double> MPMstarV2::GetStats() {
         return _stats;
     } ;
-    bool MPMstar::_GetNgh(const long &sid, std::vector<std::vector<long>> *out) {
+    bool MPMstarV2::_GetNgh(const long &sid, std::vector<std::vector<long>> *out) {
         out->clear();
         const auto& colSet = _states[sid].colSet;
         const auto& jv = _states[sid].jv;
@@ -253,7 +253,7 @@ namespace raplab{
         }
     }
 
-    std::vector<std::vector<long>> MPMstar::Pibt_process(const std::unordered_map<int, int> colSet, const long &sid) {
+    std::vector<std::vector<long>> MPMstarV2::Pibt_process(const std::unordered_map<int, int> colSet, const long &sid) {
         std::vector<std::vector<long>> pibt_policy;
         std::vector<long> start;
         std::vector<long> goal;
@@ -283,7 +283,7 @@ namespace raplab{
         return pibt_policy;
     }
 
-    bool MPMstar::_GetPibtNgh(std::vector<int> Pibt_agent, std::vector<std::vector<long>> pibt_policy,
+    bool MPMstarV2::_GetPibtNgh(std::vector<int> Pibt_agent, std::vector<std::vector<long>> pibt_policy,
                               const long &sid, std::vector<std::vector<long>> *out) {
         std::vector<long> pibt_sto = pibt_policy[0];
         const auto& Sfrom = _states[sid].jv;
@@ -314,7 +314,7 @@ namespace raplab{
         return true;
     };
 
-    bool MPMstar::_GetLimitNgh(const long& sid, std::vector< std::vector<long> >* out)
+    bool MPMstarV2::_GetLimitNgh(const long& sid, std::vector< std::vector<long> >* out)
     {
         out->clear();
         const auto& colSet = _states[sid].colSet;
@@ -351,7 +351,7 @@ namespace raplab{
     };
 
 
-    bool MPMstar::_Init() {
+    bool MPMstarV2::_Init() {
 
         if ( _nAgent != _vd.size() ){
             throw std::runtime_error("[ERROR] MPMstar::_Init, _vo.size() != _vd.size() !") ;
@@ -403,7 +403,7 @@ namespace raplab{
         return true;
     };
 
-    CostVec MPMstar::_H(const std::vector<long>& jv) {
+    CostVec MPMstarV2::_H(const std::vector<long>& jv) {
         CostVec out(_graph->CostDim(), 0);
         for (int ri = 0; ri < _nAgent; ri++) {
             out += _policies[ri].H(jv[ri]);
@@ -416,11 +416,11 @@ namespace raplab{
         return out;
     };
 
-    bool MPMstar::_IfReachGoal(const std::vector<long>& jv) {
+    bool MPMstarV2::_IfReachGoal(const std::vector<long>& jv) {
         return jvEqual(jv, _vd);
     };
 
-    std::unordered_map<int,int> MPMstar::_ColCheck(
+    std::unordered_map<int,int> MPMstarV2::_ColCheck(
             const std::vector<long>& jv1, const std::vector<long>& jv2)
     {
         std::unordered_map<int,int> out;
@@ -450,7 +450,7 @@ namespace raplab{
     };
 
 
-    void MPMstar::_AddBackSet(const long& sid1, const long& sid2)
+    void MPMstarV2::_AddBackSet(const long& sid1, const long& sid2)
     {
         if (back_set_map_.find(sid2) == back_set_map_.end()) {
             back_set_map_[sid2] = std::unordered_set<long>();
@@ -459,7 +459,7 @@ namespace raplab{
         return;
     };
 
-    void MPMstar::_BackProp(const long& sid, const std::unordered_map<int,int>& col_set) {
+    void MPMstarV2::_BackProp(const long& sid, const std::unordered_map<int,int>& col_set) {
         if ( IsColSetSubset(col_set, _states[sid].colSet) ) {
             return;
         }else{
@@ -478,7 +478,7 @@ namespace raplab{
         }
     };
 
-    void MPMstar::_ColSetUnion(const std::unordered_map<int,int>& a, std::unordered_map<int,int>* b)
+    void MPMstarV2::_ColSetUnion(const std::unordered_map<int,int>& a, std::unordered_map<int,int>* b)
     {
         for (auto iter = a.begin(); iter != a.end(); iter++) {
             if (b->find(iter->first) == b->end()) { // element *iter in a but not in b.
@@ -488,13 +488,13 @@ namespace raplab{
         return ;
     }
 
-    void MPMstar::_Reopen(const long& sid) {
+    void MPMstarV2::_Reopen(const long& sid) {
         auto& s = _states[sid];
         _open.insert( std::make_pair( s.g+_H(s.jv), sid) );
         return;
     };
 
-    CostVec MPMstar::_GetTransCost(
+    CostVec MPMstarV2::_GetTransCost(
             const std::vector<long>& jv1, const std::vector<long>& jv2, long curr_id)
     {
         CostVec out(_graph->CostDim(), 0);
@@ -514,7 +514,7 @@ namespace raplab{
         return out;
     };
 
-    void MPMstar::_BuildJointPath(long sid, std::vector< std::vector<long> >* jp)
+    void MPMstarV2::_BuildJointPath(long sid, std::vector< std::vector<long> >* jp)
     {
         std::vector< std::vector<long> > reversed_jp;
         while (sid != -1) {
@@ -528,7 +528,7 @@ namespace raplab{
         return ;
     };
 
-    CostVec MPMstar::_MoveFromGoalCost(const int& ri, long sid) {
+    CostVec MPMstarV2::_MoveFromGoalCost(const int& ri, long sid) {
         CostVec out(_graph->CostDim(), 0);
         long v = _states[sid].jv[ri];
         while (true) {
@@ -544,7 +544,7 @@ namespace raplab{
         return out;
     }
 
-    void MPMstar::_UnitePolicy(std::unordered_map<int, int> colSet, std::vector<std::vector<long>> pibt_policy,
+    void MPMstarV2::_UnitePolicy(std::unordered_map<int, int> colSet, std::vector<std::vector<long>> pibt_policy,
                                std::vector<long> jv) {
         std::vector<int> col;
         for (const auto& pair : colSet) {
@@ -562,7 +562,7 @@ namespace raplab{
 
 
     }
-    bool MPMstar::_RemoveDuplicates(std::vector<std::vector<long>>* out) {
+    bool MPMstarV2::_RemoveDuplicates(std::vector<std::vector<long>>* out) {
         std::unordered_set<std::vector<long>, VectorHash> unique_elements;
         std::vector<std::vector<long>> unique_out;
 
@@ -576,7 +576,7 @@ namespace raplab{
         return true;
     }
 
-    bool MPMstar::_getMaxPibtngh(std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> policies,
+    bool MPMstarV2::_getMaxPibtngh(std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> policies,
                                  const long &sid, std::vector<std::vector<long>> *out) {
         std::vector<std::vector<int>> Maxcols;
         size_t max_size = 0;
@@ -599,7 +599,7 @@ namespace raplab{
         return true;
     }
 
-    bool MPMstar::_getAllPibtngh(std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> policies,
+    bool MPMstarV2::_getAllPibtngh(std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> policies,
                                  const long &sid, std::vector<std::vector<long>> *out) {
         for (const auto& policy : policies) {
             std::vector<std::vector<long>> out_i;

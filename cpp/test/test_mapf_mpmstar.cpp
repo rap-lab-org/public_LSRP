@@ -11,16 +11,16 @@
 #include <string>
 #include <unordered_map>
 
-int TestPibt();
+int TestMPMstar();
 
 int main(){
 
-    TestPibt();
+    TestMPMstar();
     return 0;
 };
 
 
-int TestPibt(){
+int TestMPMstar(){
     std::cout << "####### test_mpmstar.cpp - TestMpmstar() Begin #######" << std::endl;
     // ------------static environment, 3x3, obstacle at (y=0,x=0),(y=0.x=1),(y=0,x=2),(y=1,x=0) Three robots---------
     //   x:0  1  2

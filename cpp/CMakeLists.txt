@@ -38,7 +38,9 @@ foreach(test_cpp_file ${test_cpp_files})
   ADD_EXECUTABLE(${test_cpp_name} ${test_cpp_dir}/${test_cpp_name}.cpp
           source/mapf_mpmstar.cpp
           source/mapf_pibt.cpp
-          test/test_mapf_pibt.cpp
+          source/mapf_mpmstar.cpp
+          source/mapf_mpmstar_v2.cpp
+          test/test_mapf_mpmstar.cpp
   )
 
   # TARGET_INCLUDE_DIRECTORIES(${test_cpp_name} PUBLIC include/common)
