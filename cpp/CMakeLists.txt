@@ -24,7 +24,6 @@ add_library(${PROJECT_NAME} SHARED
         source/mapf_mpmstar.cpp
         source/mapf_mstar.cpp
         include/mapf_mpmstar.hpp
-        test/test_mapf_pibt.cpp
         test/test_mapf_mpmstar.cpp
         include/mapf_mpmstar_v2.hpp
 )

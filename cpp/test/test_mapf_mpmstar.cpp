@@ -49,7 +49,7 @@ int TestMPMstar(){
     // the length of starts shows how many agents are there.
     std::vector<long> goals({5,6,8});
 
-    raplab:: MPMstar planner;
+    raplab:: MPMstarV2 planner;
     planner.SetGraphPtr(&g);
     planner.Solve(starts, goals, time_limit, 1.0);
     auto plan = planner.GetPlan();
@@ -58,5 +58,6 @@ int TestMPMstar(){
     for (auto path: plan) {
         std::cout << " path = " << path << std::endl;
     }
-    std::cout << "####### test_mpmstar.cpp - TestPibt() End #######" << std::endl;
+    std::cout << "####### test_mpmstar.cpp - TestMpmstar() End #######" << std::endl;
+    return 1;
 }
