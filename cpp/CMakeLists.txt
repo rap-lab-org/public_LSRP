@@ -19,9 +19,10 @@ include_directories(DIRECTORY
 
 add_library(${PROJECT_NAME} SHARED
   ${ALL_SRCS}
+        source/mapf_mpmstar.cpp
+        source/mapf_mpmstar_v2.cpp
         source/mapf_pibt.cpp
         include/mapf_pibt.hpp
-        source/mapf_mpmstar.cpp
         source/mapf_mstar.cpp
         include/graph_io.hpp
         test/test_movingai.cpp
@@ -34,10 +35,6 @@ foreach(test_cpp_file ${test_cpp_files})
   get_filename_component(test_cpp_name ${test_cpp_file} NAME_WE)
   #ADD_EXECUTABLE(${test_cpp_name} ${ALL_SRCS} ${test_cpp_dir}/${test_cpp_name}.cpp)
   ADD_EXECUTABLE(${test_cpp_name} ${test_cpp_dir}/${test_cpp_name}.cpp
-          source/mapf_mpmstar.cpp
-          source/mapf_pibt.cpp
-          source/mapf_mpmstar.cpp
-          source/mapf_mpmstar_v2.cpp
           test/test_movingai.cpp
   )
 

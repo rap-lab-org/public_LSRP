@@ -30,7 +30,7 @@ int TestMPMstar_movingai(){
     g.SetOccuGridPtr(&occupancy_grid);
     double time_limit = 300;
     //for (int n = 2; n <= 20; n += 2) {
-    int n = 20;
+    int n = 50;
         std::vector<long> starts;
         std::vector<long> goals;
         std::cout<<"Agent number: "<<n<<std::endl;
