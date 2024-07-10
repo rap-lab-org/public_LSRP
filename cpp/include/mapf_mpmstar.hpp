@@ -78,6 +78,9 @@ void CompileHelper();
         int all_action_counts;
         int count_of_pibt;
         int fail_of_pibt;
+        int one_step_pibt;
+        int loweest_bound;
+        double cost_times;
 
 
 
@@ -94,6 +97,7 @@ void CompileHelper();
          * @brief
          */
         virtual std::vector<std::vector<long>> Pibt_process(const std::unordered_map<int, int> colSet, const long& sid);
+        virtual std::vector<std::vector<long>> Pibt_one(const std::unordered_map<int, int> colSet, const long& sid);
         /**
          * @brief
          */

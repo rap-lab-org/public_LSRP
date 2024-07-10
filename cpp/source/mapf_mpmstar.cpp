@@ -49,7 +49,8 @@ namespace raplab{
         look_ahead_factor = int(70 - 3000/(50+_vo.size()));
         _Init();
         if ( DEBUG_MPMstar ) { std::cout << "[DEBUG] after init..." << std::endl; }
-        if ( Statics ) {runtime = 0, states_generate = 0, states_expand = 0, max_colsets = 0, max_ngh_size = 0,all_action_counts = 0,count_of_pibt=0,fail_of_pibt=0;}
+        if ( Statics ) {runtime = 0, states_generate = 0, states_expand = 0, max_colsets = 0, max_ngh_size = 0,all_action_counts = 0,count_of_pibt=0,
+                        fail_of_pibt=0,one_step_pibt = 0, loweest_bound = _H(starts)[0];}
         int counter = 0;
 
         // main while loop
@@ -90,7 +91,7 @@ namespace raplab{
 
             // expand
             std::vector< std::vector<long> > nghs;
-            bool success = _Get_Ngh_neo(s.id, &nghs);
+            bool success = _GetNgh(s.id, &nghs);
             // std::cout << " after get limited ngh" << std::endl;
             if (!success) {
                 break;
@@ -180,6 +181,7 @@ namespace raplab{
     CostVec MPMstar::GetPlanCost(long nid) {
         // the input nid is useless.
         return _states[_reached_goal_id].g;
+        if(Statics){cost_times = _states[_reached_goal_id].g[0]/loweest_bound;}
     };
 
     std::unordered_map<std::string, double> MPMstar::GetStats() {
@@ -235,8 +237,14 @@ namespace raplab{
                 }
             }
             if (_PibtorNot(sid)) {
-                std::vector<std::vector<long>> pibt_policy = Pibt_process(colSet, sid);
-                if (Statics){count_of_pibt += 1;}
+                std::vector<std::vector<long>> pibt_policy;
+                //if (colSet.size() > 0.5 * _vd.size()) {
+                     pibt_policy = Pibt_process(colSet, sid);
+                     if (Statics){count_of_pibt += 1;}
+                //} else {
+                //   pibt_policy = Pibt_one(colSet, sid);
+                //    if (Statics){one_step_pibt += 1;}
+                //}
                 if(pibt_policy.empty()) {
                         if (Statics) { fail_of_pibt += 1; }
                         // check if it has pibt policy  though we fail we could till do max colset plan
@@ -287,6 +295,17 @@ namespace raplab{
         }
     }
 
+    std::vector<std::vector<long>> MPMstar::Pibt_one(const std::unordered_map<int, int> colSet, const long &sid) {
+        std::vector<std::vector<long>> pibt_policy;
+        std::vector<int> col;
+        for (const auto& pair : colSet) {
+            int agentId = pair.first;
+            col.push_back(agentId);
+        }
+        _One_step_Pibt(col,sid,&pibt_policy);
+        return pibt_policy;
+    }
+
     std::vector<std::vector<long>> MPMstar::Pibt_process(const std::unordered_map<int, int> colSet, const long &sid) {
         std::vector<std::vector<long>> pibt_policy;
         std::vector<long> start;
@@ -311,9 +330,6 @@ namespace raplab{
             // not success return a blank vector;
             return pibt_policy;
         }
-
-
-
         return pibt_policy;
     }
 
@@ -713,6 +729,7 @@ namespace raplab{
         }
         TakeCombination(ngh_vec, out);
         //inherit
+        /*
         std::vector<long> jv = out->at(0);
         if (_planAgent.find(jv) == _planAgent.end()){
             _planAgent[jv] = copy_agent;
@@ -721,7 +738,10 @@ namespace raplab{
                 _planAgent[jv] = copy_agent;
             }
         }
+        */
     }
+
+
 
     bool MPMstar::Pibt(Agent *agent1, Agent *agent2, const std::vector<long> &Sfrom, std::vector<long> &Sto,
                        std::vector<Agent> agents_) {
