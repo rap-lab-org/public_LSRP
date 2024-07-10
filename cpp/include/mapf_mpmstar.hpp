@@ -22,6 +22,7 @@
 namespace raplab{
 
 #define DEBUG_MPMstar 0
+#define Statics 1
 std::ostream& operator<<(std::ostream& os, MState& state);
 void CompileHelper();
 
@@ -55,6 +56,29 @@ void CompileHelper();
          * @brief Get statistics as a vector of double float numbers.
          */
         virtual std::unordered_map<std::string, double> GetStats() override ;
+
+        double Get_runtime () {return runtime;}
+
+        int Get_totalStates() {return states_generate;}
+
+        int Get_expandStates() {return states_expand;}
+
+        int Get_maxColsets() {return max_colsets;}
+
+        int Get_maxNghSize() {return max_ngh_size;}
+
+        int Get_FULLactionCount() {return all_action_counts;}
+
+        // optimize part
+        double runtime;
+        int states_generate;
+        int states_expand;
+        int max_colsets;
+        int max_ngh_size;
+        int all_action_counts;
+        int count_of_pibt;
+        int fail_of_pibt;
+
 
 
     protected:
@@ -157,6 +181,20 @@ void CompileHelper();
          */
         virtual CostVec _MoveFromGoalCost(const int& ri, long sid) ;
 
+        virtual bool _PibtorNot(long sid);
+
+        virtual void _LookAhead(std::vector<long> jv, std::unordered_map<int,int>* col_set);
+
+        virtual bool _Get_Ngh_neo(const long& sid, std::vector< std::vector<long> >* out);
+
+        virtual std::vector<int> _Get_pibt_agent(const long& sid, std::unordered_map<int, int> col_set);
+
+        virtual void _One_step_Pibt(std::vector<int> agent, const long& sid, std::vector< std::vector<long> >* out);
+
+        bool Pibt(Agent *agent1, Agent *agent2, const std::vector<long> &Sfrom, std::vector<long> &Sto,std::vector<Agent> agents_);
+        bool checkOccupied(long v, const std::vector<long> &Sto,std::vector<Agent> agents_);
+        Agent *mayPush(long v, const std::vector<long> &Sfrom, const std::vector<long> &Sto, std::vector<Agent> agents_);
+
         raplab::Pibt planner;
         size_t _nAgent = 0;
         std::chrono::time_point<std::chrono::steady_clock> _t0;
@@ -182,6 +220,11 @@ void CompileHelper();
         double _wH = 1.0;
         std::vector< std::vector<long> > _sol_path;
         std::unordered_map<std::vector<long> , std::unordered_map<std::vector<int>, std::vector<std::vector<long>>>> _Pibt_policy;
+        int look_ahead_factor;
+
+        std::unordered_map<std::vector<long>, std::vector<int>> _planAgent;
+
+
 
     };
 

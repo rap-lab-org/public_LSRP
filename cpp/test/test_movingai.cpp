@@ -2,7 +2,7 @@
  * Author: Shuai Zhou.
  * All Rights Reserved.
  *******************************************/
-#include "mapf_mpmstar.hpp."
+#include "mapf_mpmstar.hpp"
 #include "mapf_mpmstar_v2.hpp"
 // #include "lattice_xya.hpp"
 #include "debug.hpp"
@@ -28,9 +28,9 @@ int TestMPMstar_movingai(){
     std::vector<std::vector<double>> occupancy_grid;
     raplab::LoadMap_MovingAI(MapPath,&occupancy_grid);
     g.SetOccuGridPtr(&occupancy_grid);
-    double time_limit = 300;
+    double time_limit = 60;
     //for (int n = 2; n <= 20; n += 2) {
-    int n = 50;
+    int n = 100;
         std::vector<long> starts;
         std::vector<long> goals;
         std::cout<<"Agent number: "<<n<<std::endl;
@@ -40,7 +40,20 @@ int TestMPMstar_movingai(){
         planner.Solve(starts, goals, time_limit, 1.2);
         auto plan = planner.GetPlan();
         auto cost = planner.GetPlanCost();
-        std::cout<<" SOC :"<<cost[0]<<std::endl;
+        auto runtime = planner.Get_runtime();
+        int states_generate = planner.states_generate;
+        int states_expand = planner.states_expand;
+        int max_colsets = planner.max_colsets;
+        int max_ngh_size = planner.max_ngh_size;
+        int all_Action_counts = planner.all_action_counts;
+        int count_of_pibt = planner.count_of_pibt;
+        int fail_of_pibt = planner.fail_of_pibt;
+        std::cout<<"RunTime: "<<runtime<<"| SOC :"<<cost[0]<<"| Generate states: "<<states_generate
+        <<"| Expand states: "<<states_expand<<"| Max collision set size: "<<max_colsets<<"| Max ngh size: "<<max_ngh_size
+        <<"| Count of Full action generates  "<<all_Action_counts<<"| Count of Pibt: "<<count_of_pibt<<"| Fail of Pibt "<<
+        fail_of_pibt<<std::endl;
+
+        //std::cout<<"| SOC :"<<cost[0]<<std::endl;
     //}
     /*
     for (auto path: plan) {

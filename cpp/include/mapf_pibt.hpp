@@ -24,10 +24,12 @@ struct Agent
     long id;
     double priority;
     double init_priority;
+    int true_id;
 
     Agent(long id, double priority);
 
     void setPriority(double pri);
+    void set_trueid(int t_id) {true_id = t_id;}
 
     bool operator<(const Agent& other) const;
 
