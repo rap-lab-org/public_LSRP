@@ -214,6 +214,7 @@ void CompileHelper();
         std::unordered_map<long,long> _parent; // map a state id to its parent state id.
         std::unordered_map<long, std::unordered_set<long> > back_set_map_;
         std::set< std::pair< CostVec, long> > _open; // <cost vector, state id>
+        std::set< std::pair< CostVec , long> > _focal; // <h_value cost vector, state id>
         // std::unordered_map< std::string, std::unordered_set<long> > _frontiers;
         std::unordered_map< std::string, long > _best;
         std::vector<long> _sol;
@@ -229,6 +230,7 @@ void CompileHelper();
         int look_ahead_factor;
 
         std::unordered_map<std::vector<long>, std::vector<int>> _planAgent;
+        CostVec fmin;
 
 
 

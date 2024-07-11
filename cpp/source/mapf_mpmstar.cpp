@@ -50,7 +50,7 @@ namespace raplab{
         _Init();
         if ( DEBUG_MPMstar ) { std::cout << "[DEBUG] after init..." << std::endl; }
         if ( Statics ) {runtime = 0, states_generate = 0, states_expand = 0, max_colsets = 0, max_ngh_size = 0,all_action_counts = 0,count_of_pibt=0,
-                        fail_of_pibt=0,one_step_pibt = 0, loweest_bound = _H(starts)[0];}
+                        fail_of_pibt=0,one_step_pibt = 0, loweest_bound = _H(starts)[0]/wH;}
         int counter = 0;
 
         // main while loop
@@ -72,11 +72,19 @@ namespace raplab{
                 break; // time out!
             }
 
-            // pop from open
-            MState& s = _states[ _open.begin()->second ];
-            _open.erase(_open.begin());
+            // pop from focal  update focal at same time
+            //MState& s = _states[ _open.begin()->second ];
+            long curr_id = _focal.begin()->second;
+            MState& s = _states[ curr_id];
+             _open.erase(std::make_pair(s.g + _H(s.jv),curr_id));
+            _focal.erase(_focal.begin());
 
             if ( DEBUG_MPMstar ) { std::cout << "[DEBUG] Current state..." << s.id <<std::endl; }
+            if (DEBUG_MPMstar) {
+                if(s.id == 27){
+                    std::cout<<"oh no"<<std::endl;
+                }
+            }
             if (Statics) { states_expand += 1;}
 
             // check for solution
@@ -104,6 +112,7 @@ namespace raplab{
             // _result.n_expanded++;
 
             _stats["num_exp"] += 1;
+            // for focal list
             for (auto& ngh : nghs) { // loop over all limited neighbors.
 
                 auto colSet = _ColCheck(s.jv, ngh);
@@ -112,13 +121,13 @@ namespace raplab{
                     _BackProp(s.id, colSet);
                     continue;
                 }
-                if (DEBUG_MPMstar){std::cout<<"Col set size: "<< std::endl;}
+                if (DEBUG_MPMstar){std::cout<<"Col set size: "<< colSet.size() <<std::endl;}
 
                 // collision-free
                 // get cost vector
                 auto cuv = _GetTransCost(s.jv, ngh, s.id);
                 CostVec g_ngh = s.g + cuv;
-                CostVec f_ngh = g_ngh + _wH * _H(ngh); // note that _wH is considered within _H()
+                CostVec f_ngh = g_ngh + _H(ngh); // note that _wH is considered within _H()
                 // if ( _SolFilter(f_ngh) ) { // dominated by some already found solution.
                 //   continue;
                 // }
@@ -158,6 +167,23 @@ namespace raplab{
                 _parent[curr_id] = s.id; // track parent.
 
             }
+            // update foal list
+            CostVec curr_fmin = _open.begin()->first;
+            fmin = curr_fmin;
+            CostVec epsilon = static_cast<CostVec>(_wH * fmin);
+            _focal.clear();
+            // list in focal is from fmin to 1.2 fmin
+            for (const auto& elem : _open) {
+                CostVec f_value = elem.first; // Assuming the first element of CostVec is the f value
+                if (f_value[0] >= fmin[0] && f_value[0] <= epsilon[0]) {
+                    long state_id = elem.second;
+                    // Here we need to compute the joint vertex corresponding h value for this state_id
+                    CostVec h_value = _H(_states[state_id].jv); // Compute h_value for this state_id
+                    _focal.insert({h_value, state_id});
+                }
+            }
+
+
         } // end while loop
         if ( DEBUG_MPMstar ) { std::cout << "[DEBUG] Solution not found but run out open?..." << std::endl; }
         if (Statics) {states_generate = _id_gen;}
@@ -448,6 +474,9 @@ namespace raplab{
         _states[curr_id].g = CostVec(_graph->CostDim(), 0);
         _states[curr_id].colSet = std::unordered_map<int, int>(); // collision set, empty set.
         _open.insert( std::make_pair(_H(_vo), curr_id) );
+        fmin = _H(_vo);
+        _focal.insert(std::make_pair(_H(_vo), curr_id));
+
         // _result.n_generated++;
         // _frontiers[jv2str(_vo)] = std::unordered_set<long>();
         // _frontiers[jv2str(_vo)].insert(curr_id);

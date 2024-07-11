@@ -29,8 +29,8 @@ int TestMPMstar_movingai(){
     raplab::LoadMap_MovingAI(MapPath,&occupancy_grid);
     g.SetOccuGridPtr(&occupancy_grid);
     double time_limit = 60;
-    for (int n = 2; n <= 160; n += 2) {
-    //int n = 50;
+    //for (int n = 2; n <= 160; n += 2) {
+    int n = 10;
         std::vector<long> starts;
         std::vector<long> goals;
         std::cout<<"Agent number: "<<n<<std::endl;
@@ -55,7 +55,7 @@ int TestMPMstar_movingai(){
         <<"| Count of Pibt: "<<count_of_pibt<<"| Fail of Pibt "<<fail_of_pibt<<"| One step PIBT: "<<one_step_pibt<<std::endl;
 
         //std::cout<<"| SOC :"<<cost[0]<<std::endl;
-    }
+    //}
     /*
     for (auto path: plan) {
         std::cout << " path = " << path << std::endl;
