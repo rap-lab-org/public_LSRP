@@ -22,6 +22,6 @@ CMake Deprecation Warning at CMakeLists.txt:1 (cmake_minimum_required):
 -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
 -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
 -- Found Threads: TRUE  
--- Configuring done (2.8s)
+-- Configuring done (3.0s)
 -- Generating done (0.0s)
 -- Build files have been written to: C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/cmake-build-debug

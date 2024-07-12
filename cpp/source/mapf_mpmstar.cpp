@@ -11,6 +11,7 @@
 #include <unordered_set>
 #include <algorithm>
 #include <set>
+#include <memory>
 
 namespace raplab{
 
@@ -50,7 +51,7 @@ namespace raplab{
         _Init();
         if ( DEBUG_MPMstar ) { std::cout << "[DEBUG] after init..." << std::endl; }
         if ( Statics ) {runtime = 0, states_generate = 0, states_expand = 0, max_colsets = 0, max_ngh_size = 0,all_action_counts = 0,count_of_pibt=0,
-                        fail_of_pibt=0,one_step_pibt = 0, loweest_bound = _H(starts)[0]/wH;}
+                        fail_of_pibt=0,one_step_pibt = 0, loweest_bound = _H(starts)[0];}
         int counter = 0;
 
         // main while loop
@@ -58,20 +59,14 @@ namespace raplab{
 
             _stats["num_iter"] += 1;
 
-            // check termination
-            // if ( _open.empty() ) {
-            //   if (_sol.size() > 0) {
-            //     std::cout << "[DEBUG] MPMstar::Search, find all pareto !" << std::endl;
-            //     _result.find_all_pareto = true;
-            //   }
-            //   break;
-            // }
             // check timeout
+            // Todo  unindex this part when debug finished
+            /*
             if ( std::chrono::duration<double>(std::chrono::steady_clock::now() - _t0).count() > _tlimit ) {
                 std::cout << "[INFO] MPMstar::Search times out!" << std::endl;
                 break; // time out!
             }
-
+            */
             // pop from focal  update focal at same time
             //MState& s = _states[ _open.begin()->second ];
             long curr_id = _focal.begin()->second;
@@ -79,18 +74,16 @@ namespace raplab{
              _open.erase(std::make_pair(s.g + _H(s.jv),curr_id));
             _focal.erase(_focal.begin());
 
+
             //Check if one state is fully expanded
             if (_Fullyexpanded_table.find(s.jv) != _Fullyexpanded_table.end()){
                 if (_Fullyexpanded_table.at(s.jv)){
                     _Update_Focal();
+                    if (DEBUG_MPMstar) {std::cout<<"State: "<<s.id<<" is fully expanded"<<std::endl;}
+                    if(DEBUG_MPMstar){
+                        _Debug_print(s.id);
+                    }
                     continue;
-                }
-            }
-
-            if ( DEBUG_MPMstar ) { std::cout << "[DEBUG] Current state..." << s.id <<std::endl; }
-            if (DEBUG_MPMstar) {
-                if(s.id == 27){
-                    std::cout<<"oh no"<<std::endl;
                 }
             }
             if (Statics) { states_expand += 1;}
@@ -125,18 +118,20 @@ namespace raplab{
             for (auto& ngh : nghs) { // loop over all limited neighbors.
 
                 auto colSet = _ColCheck(s.jv, ngh);
+                if (DEBUG_MPMstar){std::cout<<"Col set size: "<< colSet.size() <<std::endl;}
                 if (colSet.size() > 0) { // there is collision.
                     _LookAhead(ngh,&colSet);
                     _BackProp(s.id, colSet);
                     continue;
                 }
-                if (DEBUG_MPMstar){std::cout<<"Col set size: "<< colSet.size() <<std::endl;}
+
 
                 // collision-free
                 // get cost vector
                 auto cuv = _GetTransCost(s.jv, ngh, s.id);
                 CostVec g_ngh = s.g + cuv;
                 CostVec f_ngh = g_ngh + _H(ngh); // note that _wH is considered within _H()
+
                 // if ( _SolFilter(f_ngh) ) { // dominated by some already found solution.
                 //   continue;
                 // }
@@ -178,6 +173,10 @@ namespace raplab{
             }
             // update foal list
             _Update_Focal();
+            if(DEBUG_MPMstar){
+                _Debug_print(s.id);
+            }
+
 
 
         } // end while loop
@@ -202,7 +201,7 @@ namespace raplab{
 
     CostVec MPMstar::GetPlanCost(long nid) {
         // the input nid is useless.
-        if(Statics){cost_times = _states[_reached_goal_id].g[0]/fmin[0];}
+        //if(Statics){cost_times = _states[_reached_goal_id].g[0]/fmin[0];}
         return _states[_reached_goal_id].g;
 
     };
@@ -212,6 +211,22 @@ namespace raplab{
     } ;
 
     bool MPMstar::_PibtorNot(long sid) {
+        const auto& colSet = _states[sid].colSet;
+        const auto& jv = _states[sid].jv;
+        if (_Pibt_policy.find(jv) != _Pibt_policy.end()) {
+            int max_size = 0;
+            for (const auto &policy: _Pibt_policy.at(jv)) {
+                if (policy.first.size() > max_size) {
+                    max_size = policy.first.size();
+                }
+            }
+            return colSet.size() > max_size;
+        } else {
+            return true;
+        }
+    }
+
+    bool MPMstar::_Pibt_required(long sid) {
         const auto& colSet = _states[sid].colSet;
         const auto& jv = _states[sid].jv;
         if (_Pibt_policy.find(jv) != _Pibt_policy.end()) {
@@ -261,6 +276,7 @@ namespace raplab{
                          _Reopen(sid);
                          _Update_closed(sid,out);
                          return true;
+                         //return _GetLimitNgh(sid,out);
                         }
                 } else {
                     // pibt success and directly use it cause it has biggest set
@@ -271,7 +287,14 @@ namespace raplab{
                         col.push_back(agentId);
                     }
                     _GetPibtNgh(col, pibt_policy,sid,out);
-                    //_getMaxPibtngh(_Pibt_policy.at(jv), sid, out);
+                    // Todo inherit its own policy
+                    if (_Pibt_policy.find(jv) != _Pibt_policy.end()) {
+                        _Pibt_policy[jv][col] = pibt_policy;
+                    } else {
+                        std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> colAndPolicy;
+                        colAndPolicy[col] = pibt_policy;
+                        _Pibt_policy[jv] = colAndPolicy;
+                    }
                     _RemoveDuplicates(out);
                     if (_Check_closedset(sid, out)) {
                         Pibt_one(sid, out);
@@ -295,8 +318,6 @@ namespace raplab{
             if (_Pibt_policy.find(jv) != _Pibt_policy.end()) {
                 std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> policies = _Pibt_policy.at(jv);
                 _getMaxPibtngh(policies,sid,out);
-                // todo if pibt generated kids in closed set, erase it and generate with pibt
-                // todo else, reopen the state
                 if (_Check_closedset(sid, out)) {
                     Pibt_one(sid, out);
                 }
@@ -306,7 +327,6 @@ namespace raplab{
                 out->insert(out->end(), ngh3.begin(), ngh3.end());
                 _RemoveDuplicates(out);
                 _Check_closedset(sid, out); // if optimal path already in closed set just simply erase it
-                ngh3.clear();
                 _Update_closed(sid,out);
                 return true;
             } else {
@@ -325,6 +345,7 @@ namespace raplab{
             // initialize tree
             _All_tree[jv] = {tree_node(-1, -1)};
         }
+
         while(true) {
             if (_All_tree[jv].size() == 0){
                 // tree is fully expanded and the node should be through in bin
@@ -337,6 +358,9 @@ namespace raplab{
             auto colSet = _ColCheck(jv, Sto);
             if (colSet.size() > 0) { // there is collision.
                 _ColSetUnion(colSet, &(_states[sid].colSet) );
+                std::vector<std::vector<long>> tmp;
+                tmp.push_back(Sto);
+                _Update_closed(sid,&tmp);
                 continue;
             }
             if (_All_closed_Set[jv].find(Sto) != _All_closed_Set[jv].end()){
@@ -378,23 +402,34 @@ namespace raplab{
             _All_pibtAgent_order[_states[sid].jv] = pibt_agents;
         }
         // get first node
+        // Get first node
         auto& tree = _All_tree.at(_states[sid].jv);
-        tree_node curr_node = tree.front();
+        auto curr_node = std::make_shared<tree_node>(tree.front());
         tree.erase(tree.begin());
-        // grow the tree if at the last row and over the last row, it dont have to grow
-        if (curr_node._depth < _nAgent - 1){
-            const auto& order =  _All_node_Agentorder[_states[sid].jv];
-            long agent_id = order[curr_node._depth + 1];
-            long depth = curr_node._depth + 1;
+
+        // Grow the tree if at the last row and over the last row, it doesn't have to grow
+        if (curr_node->_depth < int(Sfrom.size() - 1)) {
+            const auto& order = _All_node_Agentorder[_states[sid].jv];
+            long agent_id = order[curr_node->_depth + 1];
+            int depth = curr_node->_depth + 1;
             std::vector<long> nghs = _graph->GetSuccs(Sfrom[agent_id]);
             nghs.push_back(Sfrom[agent_id]);
-            for (long ngh : nghs){
-                tree.push_back(tree_node(agent_id,ngh,depth,&curr_node));
+            for (long ngh : nghs) {
+                tree.push_back(tree_node(agent_id, ngh, depth, curr_node));
             }
         }
-        while (curr_node._id != -1){
-            (*Sto)[curr_node._id] = curr_node._action;
-            curr_node = *curr_node._parent;
+
+        // Backtrack from curr_node to root
+        auto curr_node2 = curr_node;
+        while (curr_node2 != nullptr && curr_node2->_id != -1) {
+            if (curr_node2->_id >= 0 && curr_node2->_id < Sto->size()) {
+                (*Sto)[curr_node2->_id] = curr_node2->_action;
+            } else {
+                // Handle the error case, such as logging an error message or throwing an exception
+                std::cerr << "Error: curr_node2->_id (" << curr_node2->_id << ") is out of bounds for Sto of size " << Sto->size() << std::endl;
+                return;
+            }
+            curr_node2 = curr_node2->_parent;
         }
     }
 
@@ -442,6 +477,14 @@ namespace raplab{
             }
         }
         TakeCombination(ngh_vec, out);
+        /*_Pibt_policy[Sfrom][Pibt_agent] = pibt_policy;
+        if (_Pibt_policy.find(Sfrom) != _Pibt_policy.end()) {
+            _Pibt_policy[Sfrom][Pibt_agent] = pibt_policy;
+        } else {
+            std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> colAndPolicy;
+            colAndPolicy[Pibt_agent] = pibt_policy;
+            _Pibt_policy[Sfrom] = colAndPolicy;
+        }*/
         // for its ngh jv state  inherits the policy
         std::vector<long> jv = out->at(0);
         std::vector<std::vector<long>> kid_policy;
@@ -555,11 +598,13 @@ namespace raplab{
         for (int ri = 0; ri < _nAgent; ri++) {
             out += _policies[ri].H(jv[ri]);
         }
+        /*
         if (_wH > 1.0) { // heuristic inflation
             for (size_t j = 0; j < out.size(); j++) {
                 out[j] = long(out[j] * _wH) ; // NOTE the long conversion here !
             }
         }
+         */
         return out;
     };
 
@@ -831,7 +876,6 @@ namespace raplab{
                 _focal.insert({h_value, state_id});
             }
         }
-
     }
 
     void MPMstar::_Update_closed(const long &sid, const std::vector<std::vector<long>> *out) {
@@ -871,6 +915,46 @@ namespace raplab{
         );
 
         return original_size != out->size();
+    }
+
+    void MPMstar::_Debug_print(long sid) {
+        std::cout<<"------------------------------------"<<std::endl;
+        std::cout<<std::endl;
+        std::cout << "[DEBUG] Current state..." << sid <<std::endl;
+        std::cout<<std::endl;
+        std::cout<<"Current fmin: "<<fmin[0]<<std::endl;
+        if (_Fullyexpanded_table.find(_states[sid].jv) != _Fullyexpanded_table.end()) {
+            if (_Fullyexpanded_table.at(_states[sid].jv)) {
+                if (DEBUG_MPMstar) { std::cout << "State: " << sid << " is fully expanded" << std::endl; }
+            }
+        }
+        int count = 0;
+        std::cout<<"Open size: "<<_open.size()<<std::endl;
+        for (const auto& elem : _open){
+            if (count > 0 && count % 5==0){
+                std::cout<<std::endl;
+            }
+            if (count % 5 != 0){
+                std::cout<<" | ";
+            }
+            std::cout<<"Id: "<<elem.second<<" Fvalue: "<<(elem.first)[0];
+            count ++;
+        }
+        std::cout<<std::endl;
+        count = 0;
+        std::cout<<"Focal size "<<_focal.size()<<std::endl;
+        for (const auto& elem : _focal){
+            if (count > 0 && count % 5==0){
+                std::cout<<std::endl;
+            }
+            if (count % 5 != 0){
+                std::cout<<" | ";
+            }
+            std::cout<<"Id: "<<elem.second<<" Hvalue: "<<(elem.first)[0];
+            count ++;
+        }
+        std::cout<<std::endl;
+        std::cout<<"------------------------------------"<<std::endl;
     }
 
 

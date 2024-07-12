@@ -17,11 +17,17 @@
 #include <unordered_map>
 #include <vector>
 #include <unordered_set>
+#include <memory>
+#include <vector>
+#include <iostream>
+#include <numeric>
+#include <algorithm>
+#include <unordered_map>
 
 
 namespace raplab{
 
-#define DEBUG_MPMstar 0
+#define DEBUG_MPMstar 1
 #define Statics 1
 std::ostream& operator<<(std::ostream& os, MState& state);
 void CompileHelper();
@@ -30,10 +36,10 @@ void CompileHelper();
     {
         long _id;
         long _action;
-        long _depth;
-        tree_node* _parent;
+        int _depth;
+        std::shared_ptr<tree_node> _parent;
 
-        tree_node(long id, long action, long depth = -1, tree_node* parent = nullptr)
+        tree_node(long id, long action, int depth = -1, std::shared_ptr<tree_node> parent = nullptr)
                 : _id(id), _action(action), _depth(depth), _parent(parent) {}
 
     };
@@ -200,6 +206,8 @@ void CompileHelper();
 
         virtual bool _PibtorNot(long sid);
 
+        virtual bool _Pibt_required(long sid);
+
         virtual void _LookAhead(std::vector<long> jv, std::unordered_map<int,int>* col_set);
 
         virtual std::vector<int> _Get_pibt_agent(const long& sid, std::unordered_map<int, int> col_set);
@@ -212,6 +220,8 @@ void CompileHelper();
 
         virtual bool _Check_closedset(const long &sid, std::vector<std::vector<long>>* out);
 
+        virtual void _Debug_print(long sid);
+
         bool Pibt(Agent *agent1, Agent *agent2, const std::vector<long> &Sfrom, std::vector<long> &Sto,std::vector<Agent> agents_);
 
         bool checkOccupied(long v, const std::vector<long> &Sto,std::vector<Agent> agents_);
@@ -219,6 +229,7 @@ void CompileHelper();
         Agent *mayPush(long v, const std::vector<long> &Sfrom, const std::vector<long> &Sto, std::vector<Agent> agents_);
 
         void _Get_action(const long& sid, std::vector<long>* Sto);
+
 
         raplab::Pibt planner;
         size_t _nAgent = 0;

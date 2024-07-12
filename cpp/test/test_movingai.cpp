@@ -29,7 +29,8 @@ int TestMPMstar_movingai(){
     raplab::LoadMap_MovingAI(MapPath,&occupancy_grid);
     g.SetOccuGridPtr(&occupancy_grid);
     double time_limit = 60;
-    for (int n = 2; n <= 20; n += 2) {
+    //for (int n = 1; n <= 14; n += 1) {
+    int n = 2;
         std::vector<long> starts;
         std::vector<long> goals;
         std::cout<<"Agent number: "<<n<<std::endl;
@@ -48,13 +49,14 @@ int TestMPMstar_movingai(){
         int count_of_pibt = planner.count_of_pibt;
         int fail_of_pibt = planner.fail_of_pibt;
         int one_step_pibt = planner.one_step_pibt;
-        std::cout<<"RunTime: "<<runtime<<"| SOC :"<<cost[0]<<"| Fmin: "<<planner.fmin[0]<<" | Individual optimal cost: "<<planner.loweest_bound<<"| Approximate w: "<<planner.cost_times
+        double inflation = cost[0]/planner.fmin[0];
+        std::cout<<"RunTime: "<<runtime<<"| SOC :"<<cost[0]<<"| Fmin: "<<planner.fmin[0]<<" | Individual optimal cost: "<<planner.loweest_bound<<"| Approximate w: "<<inflation
         <<" | Generate states: "<<states_generate<<"| Expand states: "<<states_expand<<"| Max collision set size: "<<
         max_colsets<<"| Max ngh size: "<<max_ngh_size<<"| Count of Full action generates  "<<all_Action_counts
         <<"| Count of Pibt: "<<count_of_pibt<<"| Fail of Pibt "<<fail_of_pibt<<"| One step PIBT: "<<one_step_pibt<<std::endl;
 
         //std::cout<<"| SOC :"<<cost[0]<<std::endl;
-    }
+    //}
     /*
     for (auto path: plan) {
         std::cout << " path = " << path << std::endl;
