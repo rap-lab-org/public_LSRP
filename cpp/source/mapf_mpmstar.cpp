@@ -76,6 +76,11 @@ namespace raplab{
              _open.erase(std::make_pair(s.g + _H(s.jv),curr_id));
             _focal.erase(_focal.begin());
 
+            //Debug
+            if (s.jv[0] == 727 && s.jv[1] == 728) {
+                std::cout<<"stop brp!"<<std::endl;
+            }
+
 
             //Check if one state is fully expanded
             if (_Fullyexpanded_table.find(s.jv) != _Fullyexpanded_table.end()){
@@ -920,7 +925,7 @@ namespace raplab{
     }
 
     void MPMstar::_Debug_print(long sid) {
-    std::ofstream outfile("debug_output.txt", std::ios_base::app); // 打开文件以追加模式
+    std::ofstream outfile("C:/Users/David Zhou/Documents/GitHub/public_LSRP/debug_output.ttx", std::ios_base::app); // 打开文件以追加模式
 
     if (!outfile.is_open()) {
         std::cerr << "Failed to open debug_output.txt" << std::endl;

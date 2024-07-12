@@ -27,7 +27,7 @@
 
 namespace raplab{
 
-#define DEBUG_MPMstar 1
+#define DEBUG_MPMstar 0
 #define Statics 1
 std::ostream& operator<<(std::ostream& os, MState& state);
 void CompileHelper();
