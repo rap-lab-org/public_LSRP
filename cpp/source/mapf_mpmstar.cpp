@@ -101,6 +101,7 @@ namespace raplab{
                 _reached_goal_id = s.id;
                 if (Statics) {runtime = std::chrono::duration<double>(std::chrono::steady_clock::now() - _t0).count();}
                 if ( DEBUG_MPMstar ) {std::cout << "[INFO] MPMstar finds a solution ! " << std::endl;}
+                std::cout<<"Solution found"<<std::endl;
                 break;
             }
             // std::cout << " will expand " << std::endl;
@@ -201,8 +202,9 @@ namespace raplab{
 
     CostVec MPMstar::GetPlanCost(long nid) {
         // the input nid is useless.
+        if(Statics){cost_times = _states[_reached_goal_id].g[0]/fmin[0];}
         return _states[_reached_goal_id].g;
-        if(Statics){cost_times = _states[_reached_goal_id].g[0]/loweest_bound;}
+
     };
 
     std::unordered_map<std::string, double> MPMstar::GetStats() {
@@ -237,13 +239,8 @@ namespace raplab{
             }
             if (_PibtorNot(sid)) {
                 std::vector<std::vector<long>> pibt_policy;
-                //if (colSet.size() > 0.5 * _vd.size()) {
-                     pibt_policy = Pibt_process(colSet, sid);
-                     if (Statics){count_of_pibt += 1;}
-                //} else {
-                //   pibt_policy = Pibt_one(colSet, sid);
-                //    if (Statics){one_step_pibt += 1;}
-                //}
+                pibt_policy = Pibt_process(colSet, sid);
+                if (Statics){count_of_pibt += 1;}
                 if(pibt_policy.empty()) {
                         if (Statics) { fail_of_pibt += 1; }
                         // check if it has pibt policy  though we fail we could till do max colset plan
@@ -251,11 +248,19 @@ namespace raplab{
                         // has pibt policy
                             _getMaxPibtngh(_Pibt_policy.at(jv), sid, out);
                             _RemoveDuplicates(out);
+                            if (_Check_closedset(sid, out)) {
+                                Pibt_one(sid, out);
+                            }
+                            _Reopen(sid);
+                            _Update_closed(sid,out);
                             return true;
                          } else {
                         // no pibt policy get full action,  worst choice
                          if (Statics) { all_action_counts += 1; }
-                            return _GetLimitNgh(sid, out);
+                         Pibt_one(sid, out);
+                         _Reopen(sid);
+                         _Update_closed(sid,out);
+                         return true;
                         }
                 } else {
                     // pibt success and directly use it cause it has biggest set
@@ -268,11 +273,21 @@ namespace raplab{
                     _GetPibtNgh(col, pibt_policy,sid,out);
                     //_getMaxPibtngh(_Pibt_policy.at(jv), sid, out);
                     _RemoveDuplicates(out);
+                    if (_Check_closedset(sid, out)) {
+                        Pibt_one(sid, out);
+                    }
+                    _Reopen(sid);
+                    _Update_closed(sid,out);
                     return true;
                 }
             } else {
             _getMaxPibtngh(_Pibt_policy.at(jv), sid, out);
             _RemoveDuplicates(out);
+            if (_Check_closedset(sid, out)) {
+                Pibt_one(sid, out);
+            }
+            _Reopen(sid);
+            _Update_closed(sid, out);
             return true;
         }
         } else {
@@ -280,16 +295,26 @@ namespace raplab{
             if (_Pibt_policy.find(jv) != _Pibt_policy.end()) {
                 std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> policies = _Pibt_policy.at(jv);
                 _getMaxPibtngh(policies,sid,out);
+                // todo if pibt generated kids in closed set, erase it and generate with pibt
+                // todo else, reopen the state
+                if (_Check_closedset(sid, out)) {
+                    Pibt_one(sid, out);
+                }
+                _Reopen(sid);
                 std::vector<std::vector<long>> ngh3;
                 _GetLimitNgh(sid,&ngh3);
                 out->insert(out->end(), ngh3.begin(), ngh3.end());
                 _RemoveDuplicates(out);
+                _Check_closedset(sid, out); // if optimal path already in closed set just simply erase it
                 ngh3.clear();
+                _Update_closed(sid,out);
                 return true;
             } else {
                 // pibt policy not exists, optimal policy
                 // Thank you so much you are the kindest scenario
-                return _GetLimitNgh(sid, out);
+                _GetLimitNgh(sid, out);
+                _Update_closed(sid,out);
+                return true;
             }
         }
     }
@@ -320,16 +345,6 @@ namespace raplab{
             out->push_back(Sto);
             return true;
         }
-        /*
-        std::vector<std::vector<long>> pibt_policy;
-        std::vector<int> col;
-        for (const auto& pair : colSet) {
-            int agentId = pair.first;
-            col.push_back(agentId);
-        }
-        _One_step_Pibt(col,sid,&pibt_policy);
-        return pibt_policy;
-         */
     }
 
     void MPMstar::_One_step_Pibt(const long &sid, std::vector<long> *Sto) {
@@ -362,10 +377,25 @@ namespace raplab{
             }
             _All_pibtAgent_order[_states[sid].jv] = pibt_agents;
         }
-        //Todo get head of tree
-        //todo grow tree
-        //todo assign action for each node from head to the root
-
+        // get first node
+        auto& tree = _All_tree.at(_states[sid].jv);
+        tree_node curr_node = tree.front();
+        tree.erase(tree.begin());
+        // grow the tree if at the last row and over the last row, it dont have to grow
+        if (curr_node._depth < _nAgent - 1){
+            const auto& order =  _All_node_Agentorder[_states[sid].jv];
+            long agent_id = order[curr_node._depth + 1];
+            long depth = curr_node._depth + 1;
+            std::vector<long> nghs = _graph->GetSuccs(Sfrom[agent_id]);
+            nghs.push_back(Sfrom[agent_id]);
+            for (long ngh : nghs){
+                tree.push_back(tree_node(agent_id,ngh,depth,&curr_node));
+            }
+        }
+        while (curr_node._id != -1){
+            (*Sto)[curr_node._id] = curr_node._action;
+            curr_node = *curr_node._parent;
+        }
     }
 
     std::vector<std::vector<long>> MPMstar::Pibt_process(const std::unordered_map<int, int> colSet, const long &sid) {
@@ -804,7 +834,44 @@ namespace raplab{
 
     }
 
+    void MPMstar::_Update_closed(const long &sid, const std::vector<std::vector<long>> *out) {
+        const auto& jv = _states[sid].jv;
+        if (_All_closed_Set.find(jv) == _All_closed_Set.end()){
+            std::set<std::vector<long>> closed_set;
+            for (const auto& element : *out) {
+                closed_set.insert(element);
+            }
+            _All_closed_Set[jv] = closed_set;
+        } else {
+            for (const auto& element : *out) {
+                _All_closed_Set[jv].insert(element);
+            }
+        }
+    }
 
+    bool MPMstar::_Check_closedset(const long &sid, std::vector<std::vector<long>> *out) {
+        const auto& jv = _states[sid].jv;
+        if (_All_closed_Set.find(jv) == _All_closed_Set.end()){
+            std::set<std::vector<long>> closed_set;
+            for (const auto& element : *out) {
+                closed_set.insert(element);
+            }
+            _All_closed_Set[jv] = closed_set;
+            // not in collision set;
+            return false;
+        }
+        // check if sth in closed set
+        auto& closed_set = _All_closed_Set[jv];
+        auto original_size = out->size();
+
+        out->erase(
+                std::remove_if(out->begin(), out->end(), [&closed_set](const std::vector<long>& element) {
+                    return closed_set.find(element) != closed_set.end();
+                }), out->end()
+        );
+
+        return original_size != out->size();
+    }
 
 
 } // end namespace rzq

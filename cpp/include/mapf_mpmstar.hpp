@@ -30,10 +30,11 @@ void CompileHelper();
     {
         long _id;
         long _action;
+        long _depth;
         tree_node* _parent;
 
-        tree_node(long id, long action, tree_node* parent = nullptr)
-                : _id(id), _action(action), _parent(parent) {}
+        tree_node(long id, long action, long depth = -1, tree_node* parent = nullptr)
+                : _id(id), _action(action), _depth(depth), _parent(parent) {}
 
     };
 
@@ -94,6 +95,7 @@ void CompileHelper();
         int one_step_pibt;
         int loweest_bound;
         double cost_times;
+        CostVec fmin;
 
 
 
@@ -206,6 +208,10 @@ void CompileHelper();
 
         virtual void _Update_Focal();
 
+        virtual void _Update_closed(const long &sid, const std::vector<std::vector<long>>* out);
+
+        virtual bool _Check_closedset(const long &sid, std::vector<std::vector<long>>* out);
+
         bool Pibt(Agent *agent1, Agent *agent2, const std::vector<long> &Sfrom, std::vector<long> &Sto,std::vector<Agent> agents_);
 
         bool checkOccupied(long v, const std::vector<long> &Sto,std::vector<Agent> agents_);
@@ -243,7 +249,6 @@ void CompileHelper();
         int look_ahead_factor;
 
         std::unordered_map<std::vector<long>, std::vector<int>> _planAgent;
-        CostVec fmin;
         std::unordered_map<std::vector<long>, bool> _Fullyexpanded_table;
         std::unordered_map<std::vector<long>, std::vector<tree_node>> _All_tree;
         std::unordered_map<std::vector<long>, std::set<std::vector<long>>> _All_closed_Set;
