@@ -27,7 +27,7 @@
 
 namespace raplab{
 
-#define DEBUG_MPMstar 0
+#define DEBUG_MPMstar 1
 #define Statics 1
 std::ostream& operator<<(std::ostream& os, MState& state);
 void CompileHelper();
@@ -267,7 +267,7 @@ void CompileHelper();
         std::unordered_map<std::vector<long>, std::vector<int>> _All_node_Agentorder;
 
 
-
+        void savePathsToCoordinates();
     };
 
 

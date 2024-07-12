@@ -203,6 +203,7 @@ namespace raplab{
 
     std::vector< std::vector<long> > MPMstar::GetPlan(long nid) {
         // the input nid is useless.
+        savePathsToCoordinates();
         return _sol_path;
     };
 
@@ -236,14 +237,32 @@ namespace raplab{
     bool MPMstar::_Pibt_required(long sid) {
         const auto& colSet = _states[sid].colSet;
         const auto& jv = _states[sid].jv;
+
         if (_Pibt_policy.find(jv) != _Pibt_policy.end()) {
+            // 找到最大 size 的 policy
+            std::vector<int> max_policy_agents;
             int max_size = 0;
             for (const auto &policy: _Pibt_policy.at(jv)) {
                 if (policy.first.size() > max_size) {
                     max_size = policy.first.size();
+                    max_policy_agents.clear();
+                    for (int agent : policy.first) {
+                        max_policy_agents.push_back(agent);
+                    }
                 }
             }
-            return colSet.size() > max_size;
+
+            // 提取 colSet 的 agentId
+            std::vector<int> col;
+            for (const auto& pair : colSet) {
+                int agentId = pair.first;
+                col.push_back(agentId);
+            }
+
+            // 检查 col 是否是 max_policy_agents 的子集
+            std::sort(col.begin(), col.end());
+            std::sort(max_policy_agents.begin(), max_policy_agents.end());
+            return std::includes(max_policy_agents.begin(), max_policy_agents.end(), col.begin(), col.end());
         } else {
             return true;
         }
@@ -934,7 +953,7 @@ namespace raplab{
 
     outfile << "------------------------------------" << std::endl;
     outfile << std::endl;
-    outfile << "[DEBUG] Current state... " << sid << std::endl;
+    outfile << "[DEBUG] Current state... " << sid << "|||"<<std::endl;
     outfile << std::endl;
     outfile << "Current fmin: " << fmin[0] << std::endl;
 
@@ -977,6 +996,26 @@ namespace raplab{
 
     outfile.close(); // 关闭文件
 }
+
+    void MPMstar::savePathsToCoordinates() {
+        std::ofstream outFile("C:/Users/David Zhou/Documents/GitHub/public_LSRP/Path.txt");
+        if (!outFile.is_open()) {
+            std::cerr << "Error opening file: " << "Path.txt" << std::endl;
+            return;
+        }
+
+        for (size_t i = 0; i < _sol_path.size(); ++i) {
+            outFile << "Agent " << i + 1 << " Path:" << std::endl;
+            for (long id : _sol_path[i]) {
+                int x = id % 32;
+                int y = id / 32;
+                outFile << "(" << y << ", " << x << ")" << std::endl;
+            }
+            outFile << std::endl;
+        }
+
+        outFile.close();
+    }
 
 
 } // end namespace rzq
