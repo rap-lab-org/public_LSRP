@@ -79,6 +79,14 @@ namespace raplab{
              _open.erase(std::make_pair(s.g + _H(s.jv),curr_id));
             _focal.erase(_focal.begin());
 
+            //Check if one state is fully expanded
+            if (_Fullyexpanded_table.find(s.jv) != _Fullyexpanded_table.end()){
+                if (_Fullyexpanded_table.at(s.jv)){
+                    _Update_Focal();
+                    continue;
+                }
+            }
+
             if ( DEBUG_MPMstar ) { std::cout << "[DEBUG] Current state..." << s.id <<std::endl; }
             if (DEBUG_MPMstar) {
                 if(s.id == 27){
@@ -168,20 +176,7 @@ namespace raplab{
 
             }
             // update foal list
-            CostVec curr_fmin = _open.begin()->first;
-            fmin = curr_fmin;
-            CostVec epsilon = static_cast<CostVec>(_wH * fmin);
-            _focal.clear();
-            // list in focal is from fmin to 1.2 fmin
-            for (const auto& elem : _open) {
-                CostVec f_value = elem.first; // Assuming the first element of CostVec is the f value
-                if (f_value[0] >= fmin[0] && f_value[0] <= epsilon[0]) {
-                    long state_id = elem.second;
-                    // Here we need to compute the joint vertex corresponding h value for this state_id
-                    CostVec h_value = _H(_states[state_id].jv); // Compute h_value for this state_id
-                    _focal.insert({h_value, state_id});
-                }
-            }
+            _Update_Focal();
 
 
         } // end while loop
@@ -227,28 +222,6 @@ namespace raplab{
             return colSet.size() > max_size;
         } else {
             return true;
-        }
-    }
-
-    bool MPMstar::_Get_Ngh_neo(const long &sid, std::vector<std::vector<long>> *out) {
-         out->clear();
-         auto& colSet = _states[sid].colSet;
-         auto& jv = _states[sid].jv;
-         if(!colSet.empty()){
-            std::vector<int> Pibt_agent = _Get_pibt_agent(sid,colSet);
-            _One_step_Pibt(Pibt_agent,sid,out);
-            return true;
-         } else {
-            if (_planAgent.find(jv) == _planAgent.end()){
-                return  _GetLimitNgh(sid,out);
-            } else {
-                _One_step_Pibt(_planAgent.at(jv),sid,out);
-                std::vector<std::vector<long>> ngh3;
-                _GetLimitNgh(sid,&ngh3);
-                out->insert(out->end(), ngh3.begin(), ngh3.end());
-                _RemoveDuplicates(out);
-                return true;
-            }
         }
     }
 
@@ -321,7 +294,33 @@ namespace raplab{
         }
     }
 
-    std::vector<std::vector<long>> MPMstar::Pibt_one(const std::unordered_map<int, int> colSet, const long &sid) {
+    bool MPMstar::Pibt_one(const long &sid, std::vector< std::vector<long> >* out) {
+        const auto& jv = _states[sid].jv;
+        if (_All_tree.find(jv) == _All_tree.end()){
+            // initialize tree
+            _All_tree[jv] = {tree_node(-1, -1)};
+        }
+        while(true) {
+            if (_All_tree[jv].size() == 0){
+                // tree is fully expanded and the node should be through in bin
+                _Fullyexpanded_table[jv] = true;
+                return true;
+            }
+            std::vector<long> Sto(_vo.size(), -1);
+            _Get_action(sid, &Sto);
+            _One_step_Pibt(sid,&Sto);
+            auto colSet = _ColCheck(jv, Sto);
+            if (colSet.size() > 0) { // there is collision.
+                _ColSetUnion(colSet, &(_states[sid].colSet) );
+                continue;
+            }
+            if (_All_closed_Set[jv].find(Sto) != _All_closed_Set[jv].end()){
+                continue;
+            }
+            out->push_back(Sto);
+            return true;
+        }
+        /*
         std::vector<std::vector<long>> pibt_policy;
         std::vector<int> col;
         for (const auto& pair : colSet) {
@@ -330,6 +329,43 @@ namespace raplab{
         }
         _One_step_Pibt(col,sid,&pibt_policy);
         return pibt_policy;
+         */
+    }
+
+    void MPMstar::_One_step_Pibt(const long &sid, std::vector<long> *Sto) {
+        const auto& Sfrom = _states[sid].jv;
+        // initialize priority table
+        for (auto &a: _All_pibtAgent_order[_states[sid].jv]) {
+            if ((*Sto)[a.id] == -1) {  // 修改此处，根据你的需求检查 Sto[a.id] 的值
+                Pibt(&a, nullptr, Sfrom, *Sto, _All_pibtAgent_order[_states[sid].jv]);
+            }
+        }
+    }
+
+    void MPMstar::_Get_action(const long &sid, std::vector<long> *Sto) {
+        const auto& Sfrom = _states[sid].jv;
+        // initialize order for get actions and
+        if (_All_pibtAgent_order.find(_states[sid].jv) == _All_pibtAgent_order.end()) {
+            std::vector<int> agent(Sfrom.size());
+            std::iota(agent.begin(), agent.end(), 0);
+            std::sort(agent.begin(), agent.end(), [&](int a, int b) {
+                return _policies[a].H(Sfrom[a]) < _policies[b].H(Sfrom[b]);
+            });
+            _All_node_Agentorder[_states[sid].jv] = agent;
+            std::vector<Agent> pibt_agents;
+            double gap = 1.0 / (agent.size() + 1);
+            for (size_t i = 0; i < agent.size(); ++i) {
+                pibt_agents.emplace_back(i, 1 - i * gap);
+            }
+            for (auto &a: pibt_agents) {
+                a.set_trueid(agent[a.id]);
+            }
+            _All_pibtAgent_order[_states[sid].jv] = pibt_agents;
+        }
+        //Todo get head of tree
+        //todo grow tree
+        //todo assign action for each node from head to the root
+
     }
 
     std::vector<std::vector<long>> MPMstar::Pibt_process(const std::unordered_map<int, int> colSet, const long &sid) {
@@ -625,24 +661,6 @@ namespace raplab{
         return out;
     }
 
-    void MPMstar::_UnitePolicy(std::unordered_map<int, int> colSet, std::vector<std::vector<long>> pibt_policy,
-                               std::vector<long> jv) {
-        std::vector<int> col;
-        for (const auto& pair : colSet) {
-            int agentId = pair.first;
-            col.push_back(agentId);
-        }
-        if (_Pibt_policy.find(jv) != _Pibt_policy.end()) {
-            _Pibt_policy[jv][col] = pibt_policy;
-        } else {
-            std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> colAndPolicy;
-            colAndPolicy[col] = pibt_policy;
-            _Pibt_policy[jv] = colAndPolicy;
-        }
-
-
-
-    }
     bool MPMstar::_RemoveDuplicates(std::vector<std::vector<long>>* out) {
         std::unordered_set<std::vector<long>, VectorHash> unique_elements;
         std::vector<std::vector<long>> unique_out;
@@ -717,61 +735,6 @@ namespace raplab{
         }
     }
 
-    void MPMstar::_One_step_Pibt(std::vector<int> agent, const long &sid, std::vector<std::vector<long>> *out) {
-        std::vector<int> copy_agent;
-        std::copy(agent.begin() , agent.end(), std::back_inserter(copy_agent));
-
-        std::vector<long> start;
-        const auto& Sfrom = _states[sid].jv;
-        for (const auto& a : agent) {
-            start.push_back(Sfrom[a]);
-        }
-        std::sort(copy_agent.begin(), copy_agent.end(), [&](int a, int b) {
-            return _policies[a].H(Sfrom[a]) < _policies[b].H(Sfrom[b]);
-        });
-        std::vector<Agent> pibt_agents;
-        double gap = 1.0 / (copy_agent.size() + 1);
-        for (size_t i = 0; i < copy_agent.size(); ++i) {
-            pibt_agents.emplace_back(i, 1 - i * gap);
-        }
-        for (auto &agent: pibt_agents){
-            agent.set_trueid(copy_agent[agent.id]);
-        }
-        std::vector<long> Sto(Sfrom.size(), -1);
-        for (auto &agent: pibt_agents) {
-            if (Sto[agent.id] == -1) {
-                Pibt(&agent, nullptr, Sfrom, Sto,pibt_agents);
-            }
-        }
-
-        std::vector< std::vector<long> > ngh_vec;
-        ngh_vec.resize(_nAgent);
-        // insert pibt
-        for (auto &agent: pibt_agents){
-            ngh_vec[agent.true_id].push_back(Sto[agent.id]);
-        }
-        std::unordered_set<int> pibt_agent_set(copy_agent.begin(), copy_agent.end());
-        for (size_t ri = 0; ri < _nAgent; ++ri) {
-            if (pibt_agent_set.find(ri) == pibt_agent_set.end()) {
-                ngh_vec[ri].push_back(_policies[ri].Phi(Sfrom[ri]));
-            }
-        }
-        TakeCombination(ngh_vec, out);
-        //inherit
-        /*
-        std::vector<long> jv = out->at(0);
-        if (_planAgent.find(jv) == _planAgent.end()){
-            _planAgent[jv] = copy_agent;
-        } else {
-            if (_planAgent[jv].size() < copy_agent.size()){
-                _planAgent[jv] = copy_agent;
-            }
-        }
-        */
-    }
-
-
-
     bool MPMstar::Pibt(Agent *agent1, Agent *agent2, const std::vector<long> &Sfrom, std::vector<long> &Sto,
                        std::vector<Agent> agents_) {
         std::vector<long> C = _graph->GetSuccs(Sfrom[agent1->id]);
@@ -821,6 +784,27 @@ namespace raplab{
             return nullptr;
         }
     }
+
+    void MPMstar::_Update_Focal() {
+        // update foal list
+        CostVec curr_fmin = _open.begin()->first;
+        fmin = curr_fmin;
+        CostVec epsilon = static_cast<CostVec>(_wH * fmin);
+        _focal.clear();
+        // list in focal is from fmin to 1.2 fmin
+        for (const auto& elem : _open) {
+            CostVec f_value = elem.first; // Assuming the first element of CostVec is the f value
+            if (f_value[0] >= fmin[0] && f_value[0] <= epsilon[0]) {
+                long state_id = elem.second;
+                // Here we need to compute the joint vertex corresponding h value for this state_id
+                CostVec h_value = _H(_states[state_id].jv); // Compute h_value for this state_id
+                _focal.insert({h_value, state_id});
+            }
+        }
+
+    }
+
+
 
 
 } // end namespace rzq

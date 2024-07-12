@@ -26,6 +26,17 @@ namespace raplab{
 std::ostream& operator<<(std::ostream& os, MState& state);
 void CompileHelper();
 
+    struct tree_node
+    {
+        long _id;
+        long _action;
+        tree_node* _parent;
+
+        tree_node(long id, long action, tree_node* parent = nullptr)
+                : _id(id), _action(action), _parent(parent) {}
+
+    };
+
 
 
 /**
@@ -99,7 +110,10 @@ void CompileHelper();
          * @brief
          */
         virtual std::vector<std::vector<long>> Pibt_process(const std::unordered_map<int, int> colSet, const long& sid);
-        virtual std::vector<std::vector<long>> Pibt_one(const std::unordered_map<int, int> colSet, const long& sid);
+        /**
+         * @brief
+         */
+        virtual bool Pibt_one(const long& sid,std::vector< std::vector<long> >* out);
         /**
          * @brief
          */
@@ -110,11 +124,6 @@ void CompileHelper();
         */
         virtual bool _GetPibtNgh(std::vector<int> Pibt_agent, std::vector<std::vector<long>> pibt_policy,
         const long& sid, std::vector< std::vector<long> >* out);
-        /**
-         * @brief
-         */
-         virtual void _UnitePolicy(std::unordered_map<int, int> colSet,std::vector<std::vector<long>> pibt_policy,
-                                   std::vector<long> jv);
         /**
          * @brief
          */
@@ -191,15 +200,19 @@ void CompileHelper();
 
         virtual void _LookAhead(std::vector<long> jv, std::unordered_map<int,int>* col_set);
 
-        virtual bool _Get_Ngh_neo(const long& sid, std::vector< std::vector<long> >* out);
-
         virtual std::vector<int> _Get_pibt_agent(const long& sid, std::unordered_map<int, int> col_set);
 
-        virtual void _One_step_Pibt(std::vector<int> agent, const long& sid, std::vector< std::vector<long> >* out);
+        virtual void _One_step_Pibt(const long &sid, std::vector<long> *Sto);
+
+        virtual void _Update_Focal();
 
         bool Pibt(Agent *agent1, Agent *agent2, const std::vector<long> &Sfrom, std::vector<long> &Sto,std::vector<Agent> agents_);
+
         bool checkOccupied(long v, const std::vector<long> &Sto,std::vector<Agent> agents_);
+
         Agent *mayPush(long v, const std::vector<long> &Sfrom, const std::vector<long> &Sto, std::vector<Agent> agents_);
+
+        void _Get_action(const long& sid, std::vector<long>* Sto);
 
         raplab::Pibt planner;
         size_t _nAgent = 0;
@@ -231,6 +244,11 @@ void CompileHelper();
 
         std::unordered_map<std::vector<long>, std::vector<int>> _planAgent;
         CostVec fmin;
+        std::unordered_map<std::vector<long>, bool> _Fullyexpanded_table;
+        std::unordered_map<std::vector<long>, std::vector<tree_node>> _All_tree;
+        std::unordered_map<std::vector<long>, std::set<std::vector<long>>> _All_closed_Set;
+        std::unordered_map<std::vector<long>, std::vector<Agent>> _All_pibtAgent_order;
+        std::unordered_map<std::vector<long>, std::vector<int>> _All_node_Agentorder;
 
 
 
