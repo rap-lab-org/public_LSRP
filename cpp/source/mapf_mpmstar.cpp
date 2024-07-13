@@ -295,6 +295,7 @@ namespace raplab{
                             _getMaxPibtngh(_Pibt_policy.at(jv), sid, out);
                             _RemoveDuplicates(out);
                             if (_Check_closedset(sid, out)) {
+                                if (Statics) { one_step_pibt += 1; }
                                 Pibt_one(sid, out);
                             }
                             _Reopen(sid);
@@ -302,7 +303,7 @@ namespace raplab{
                             return true;
                          } else {
                         // no pibt policy get full action,  worst choice
-                         if (Statics) { all_action_counts += 1; }
+                        if (Statics) { one_step_pibt += 1; }
                          Pibt_one(sid, out);
                          _Reopen(sid);
                          _Update_closed(sid,out);
@@ -328,6 +329,7 @@ namespace raplab{
                     }
                     _RemoveDuplicates(out);
                     if (_Check_closedset(sid, out)) {
+                        if (Statics) { one_step_pibt += 1; }
                         Pibt_one(sid, out);
                     }
                     _Reopen(sid);
@@ -338,6 +340,7 @@ namespace raplab{
             _getMaxPibtngh(_Pibt_policy.at(jv), sid, out);
             _RemoveDuplicates(out);
             if (_Check_closedset(sid, out)) {
+                if (Statics) { one_step_pibt += 1; }
                 Pibt_one(sid, out);
             }
             _Reopen(sid);
@@ -350,6 +353,7 @@ namespace raplab{
                 std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> policies = _Pibt_policy.at(jv);
                 _getMaxPibtngh(policies,sid,out);
                 if (_Check_closedset(sid, out)) {
+                    if (Statics) { one_step_pibt += 1; }
                     Pibt_one(sid, out);
                 }
                 _Reopen(sid);
@@ -379,7 +383,7 @@ namespace raplab{
 
         while(true) {
             if (_All_tree[jv].size() == 0){
-                // tree is fully expanded and the node should be through in bin
+                // tree is fully expanded and the node should be throw in bin
                 _Fullyexpanded_table[jv] = true;
                 return true;
             }
@@ -508,14 +512,6 @@ namespace raplab{
             }
         }
         TakeCombination(ngh_vec, out);
-        /*_Pibt_policy[Sfrom][Pibt_agent] = pibt_policy;
-        if (_Pibt_policy.find(Sfrom) != _Pibt_policy.end()) {
-            _Pibt_policy[Sfrom][Pibt_agent] = pibt_policy;
-        } else {
-            std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> colAndPolicy;
-            colAndPolicy[Pibt_agent] = pibt_policy;
-            _Pibt_policy[Sfrom] = colAndPolicy;
-        }*/
         // for its ngh jv state  inherits the policy
         std::vector<long> jv = out->at(0);
         std::vector<std::vector<long>> kid_policy;
