@@ -1,0 +1,3 @@
+"D:\clion\CLion 2023.3.4\bin\cmake\win\x64\bin\cmake.exe" -E rm -f CMakeFiles\test_mapf_mpmstar.dir/objects.a
+"D:\clion\CLion 2023.3.4\bin\mingw\bin\ar.exe" qc CMakeFiles\test_mapf_mpmstar.dir/objects.a @CMakeFiles\test_mapf_mpmstar.dir\objects1.rsp
+"D:\clion\CLion 2023.3.4\bin\mingw\bin\g++.exe" -std=c++0x  -g -Wl,--whole-archive CMakeFiles\test_mapf_mpmstar.dir/objects.a -Wl,--no-whole-archive -o test_mapf_mpmstar.exe -Wl,--out-implib,libtest_mapf_mpmstar.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\test_mapf_mpmstar.dir\linkLibs.rsp

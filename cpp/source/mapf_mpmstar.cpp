@@ -12,6 +12,8 @@
 #include <algorithm>
 #include <set>
 #include <memory>
+#include <utility>
+#include <fstream>
 
 namespace raplab{
 
@@ -918,44 +920,58 @@ namespace raplab{
     }
 
     void MPMstar::_Debug_print(long sid) {
-        std::cout<<"------------------------------------"<<std::endl;
-        std::cout<<std::endl;
-        std::cout << "[DEBUG] Current state..." << sid <<std::endl;
-        std::cout<<std::endl;
-        std::cout<<"Current fmin: "<<fmin[0]<<std::endl;
-        if (_Fullyexpanded_table.find(_states[sid].jv) != _Fullyexpanded_table.end()) {
-            if (_Fullyexpanded_table.at(_states[sid].jv)) {
-                if (DEBUG_MPMstar) { std::cout << "State: " << sid << " is fully expanded" << std::endl; }
-            }
-        }
-        int count = 0;
-        std::cout<<"Open size: "<<_open.size()<<std::endl;
-        for (const auto& elem : _open){
-            if (count > 0 && count % 5==0){
-                std::cout<<std::endl;
-            }
-            if (count % 5 != 0){
-                std::cout<<" | ";
-            }
-            std::cout<<"Id: "<<elem.second<<" Fvalue: "<<(elem.first)[0];
-            count ++;
-        }
-        std::cout<<std::endl;
-        count = 0;
-        std::cout<<"Focal size "<<_focal.size()<<std::endl;
-        for (const auto& elem : _focal){
-            if (count > 0 && count % 5==0){
-                std::cout<<std::endl;
-            }
-            if (count % 5 != 0){
-                std::cout<<" | ";
-            }
-            std::cout<<"Id: "<<elem.second<<" Hvalue: "<<(elem.first)[0];
-            count ++;
-        }
-        std::cout<<std::endl;
-        std::cout<<"------------------------------------"<<std::endl;
+    std::ofstream outfile("debug_output.txt", std::ios_base::app); // 打开文件以追加模式
+
+    if (!outfile.is_open()) {
+        std::cerr << "Failed to open debug_output.txt" << std::endl;
+        return;
     }
+
+    outfile << "------------------------------------" << std::endl;
+    outfile << std::endl;
+    outfile << "[DEBUG] Current state... " << sid << std::endl;
+    outfile << std::endl;
+    outfile << "Current fmin: " << fmin[0] << std::endl;
+
+    if (_Fullyexpanded_table.find(_states[sid].jv) != _Fullyexpanded_table.end()) {
+        if (_Fullyexpanded_table.at(_states[sid].jv)) {
+            if (DEBUG_MPMstar) {
+                outfile << "State: " << sid << " is fully expanded" << std::endl;
+            }
+        }
+    }
+
+    int count = 0;
+    outfile << "Open size: " << _open.size() << std::endl;
+    for (const auto& elem : _open) {
+        if (count > 0 && count % 5 == 0) {
+            outfile << std::endl;
+        }
+        if (count % 5 != 0) {
+            outfile << " | ";
+        }
+        outfile << "Id: " << elem.second << " Fvalue: " << (elem.first)[0];
+        count++;
+    }
+    outfile << std::endl;
+
+    count = 0;
+    outfile << "Focal size: " << _focal.size() << std::endl;
+    for (const auto& elem : _focal) {
+        if (count > 0 && count % 5 == 0) {
+            outfile << std::endl;
+        }
+        if (count % 5 != 0) {
+            outfile << " | ";
+        }
+        outfile << "Id: " << elem.second << " Hvalue: " << (elem.first)[0];
+        count++;
+    }
+    outfile << std::endl;
+    outfile << "------------------------------------" << std::endl;
+
+    outfile.close(); // 关闭文件
+}
 
 
 } // end namespace rzq
