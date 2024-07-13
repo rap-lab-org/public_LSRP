@@ -77,8 +77,13 @@ namespace raplab{
             _focal.erase(_focal.begin());
 
             //Debug
-            if (s.jv[0] == 727 && s.jv[1] == 728) {
+            /*if (s.jv[0] == 727 && s.jv[1] == 728) {
                 std::cout<<"stop brp!"<<std::endl;
+            }*/
+
+            if(s.id == 38){
+                std::vector<long> ngh1 = _graph->GetSuccs(s.jv[0]);
+                std::vector<long> ngh2 = _graph->GetSuccs(s.jv[1]);
             }
 
 
@@ -278,7 +283,7 @@ namespace raplab{
                     max_colsets = colSet.size();
                 }
             }
-            if (_PibtorNot(sid)) {
+            if (_Pibt_required(sid)) {
                 std::vector<std::vector<long>> pibt_policy;
                 pibt_policy = Pibt_process(colSet, sid);
                 if (Statics){count_of_pibt += 1;}
@@ -944,7 +949,7 @@ namespace raplab{
     }
 
     void MPMstar::_Debug_print(long sid) {
-    std::ofstream outfile("C:/Users/David Zhou/Documents/GitHub/public_LSRP/debug_output.ttx", std::ios_base::app); // 打开文件以追加模式
+    std::ofstream outfile("C:/Users/David Zhou/Documents/GitHub/public_LSRP/debug_output.txt", std::ios_base::app); // 打开文件以追加模式
 
     if (!outfile.is_open()) {
         std::cerr << "Failed to open debug_output.txt" << std::endl;
