@@ -96,10 +96,10 @@ void CompileHelper();
         int max_colsets;
         int max_ngh_size;
         int all_action_counts;
-        int count_of_pibt;
+        int action_tree;
         int fail_of_pibt;
         int one_step_pibt;
-        int loweest_bound;
+        int lowest_bound;
         double cost_times;
         CostVec fmin;
 
@@ -113,29 +113,15 @@ void CompileHelper();
         /**
          * @brief
          */
-        virtual bool _GetNgh(const long& sid, std::vector< std::vector<long> >* out);
+        virtual bool _ActionTree(const long& sid,std::vector< std::vector<long> >* out);
         /**
          * @brief
          */
-        virtual std::vector<std::vector<long>> Pibt_process(const std::unordered_map<int, int> colSet, const long& sid);
+         virtual bool _Get_OneStepPibt(std::set<int> col, const long& sid, std::vector< std::vector<long> >* out);
         /**
          * @brief
          */
-        virtual bool Pibt_one(const long& sid,std::vector< std::vector<long> >* out);
-        /**
-         * @brief
-         */
-        virtual bool _getMaxPibtngh(std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> policies,
-                                    const long& sid, std::vector< std::vector<long> >* out);
-        /**
-        * @brief
-        */
-        virtual bool _GetPibtNgh(std::vector<int> Pibt_agent, std::vector<std::vector<long>> pibt_policy,
-        const long& sid, std::vector< std::vector<long> >* out);
-        /**
-         * @brief
-         */
-        virtual bool _RemoveDuplicates(std::vector<std::vector<long>>* out);
+        virtual bool _GetMPMngh(const long& sid, std::vector< std::vector<long> >* out);
         /**
          * @brief
          */
@@ -204,13 +190,8 @@ void CompileHelper();
          */
         virtual CostVec _MoveFromGoalCost(const int& ri, long sid) ;
 
-        virtual bool _PibtorNot(long sid);
-
-        virtual bool _Pibt_required(long sid);
-
         virtual void _LookAhead(std::vector<long> jv, std::unordered_map<int,int>* col_set);
 
-        virtual std::vector<int> _Get_pibt_agent(const long& sid, std::unordered_map<int, int> col_set);
 
         virtual void _One_step_Pibt(const long &sid, std::vector<long> *Sto);
 
@@ -229,6 +210,27 @@ void CompileHelper();
         Agent *mayPush(long v, const std::vector<long> &Sfrom, const std::vector<long> &Sto, std::vector<Agent> agents_);
 
         void _Get_action(const long& sid, std::vector<long>* Sto);
+
+        // not using anymore
+        /*
+        virtual std::vector<int> _Get_pibt_agent(const long& sid, std::unordered_map<int, int> col_set);
+
+        virtual bool _PibtorNot(long sid);
+
+        virtual bool _Pibt_required(long sid);
+
+        virtual bool _getMaxPibtngh(std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> policies,
+                                    const long& sid, std::vector< std::vector<long> >* out);
+
+        virtual bool _GetPibtNgh(std::vector<int> Pibt_agent, std::vector<std::vector<long>> pibt_policy,
+                                 const long& sid, std::vector< std::vector<long> >* out);
+
+        virtual bool _RemoveDuplicates(std::vector<std::vector<long>>* out);
+
+        virtual bool _GetNgh(const long& sid, std::vector< std::vector<long> >* out);
+
+        virtual std::vector<std::vector<long>> Pibt_process(const std::unordered_map<int, int> colSet, const long& sid);
+         */
 
 
         raplab::Pibt planner;
@@ -265,6 +267,7 @@ void CompileHelper();
         std::unordered_map<std::vector<long>, std::set<std::vector<long>>> _All_closed_Set;
         std::unordered_map<std::vector<long>, std::vector<Agent>> _All_pibtAgent_order;
         std::unordered_map<std::vector<long>, std::vector<int>> _All_node_Agentorder;
+        std::unordered_map<std::vector<long>,std::set<int>> Ic_cache;
 
 
         void savePathsToCoordinates();

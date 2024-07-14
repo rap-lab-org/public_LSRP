@@ -52,8 +52,8 @@ namespace raplab{
         look_ahead_factor = int(70 - 3000/(50+_vo.size()));
         _Init();
         if ( DEBUG_MPMstar ) { std::cout << "[DEBUG] after init..." << std::endl; }
-        if ( Statics ) {runtime = 0, states_generate = 0, states_expand = 0, max_colsets = 0, max_ngh_size = 0,all_action_counts = 0,count_of_pibt=0,
-                        fail_of_pibt=0,one_step_pibt = 0, loweest_bound = _H(starts)[0];}
+        if ( Statics ) {runtime = 0, states_generate = 0, states_expand = 0, max_colsets = 0, max_ngh_size = 0,all_action_counts = 0,action_tree=0,
+                        fail_of_pibt=0,one_step_pibt = 0, lowest_bound = _H(starts)[0];}
         int counter = 0;
 
         // main while loop
@@ -81,17 +81,13 @@ namespace raplab{
                 std::cout<<"stop brp!"<<std::endl;
             }*/
 
-            if(s.id == 38){
-                std::vector<long> ngh1 = _graph->GetSuccs(s.jv[0]);
-                std::vector<long> ngh2 = _graph->GetSuccs(s.jv[1]);
-            }
 
 
             //Check if one state is fully expanded
             if (_Fullyexpanded_table.find(s.jv) != _Fullyexpanded_table.end()){
                 if (_Fullyexpanded_table.at(s.jv)){
                     _Update_Focal();
-                    if (DEBUG_MPMstar) {std::cout<<"State: "<<s.id<<" is fully expanded"<<std::endl;}
+                    //if (DEBUG_MPMstar) {std::cout<<"State: "<<s.id<<" is fully expanded"<<std::endl;}
                     if(DEBUG_MPMstar){
                         _Debug_print(s.id);
                     }
@@ -113,7 +109,7 @@ namespace raplab{
 
             // expand
             std::vector< std::vector<long> > nghs;
-            bool success = _GetNgh(s.id, &nghs);
+            bool success = _GetMPMngh(s.id, &nghs);
             // std::cout << " after get limited ngh" << std::endl;
             if (!success) {
                 break;
@@ -130,7 +126,7 @@ namespace raplab{
             for (auto& ngh : nghs) { // loop over all limited neighbors.
 
                 auto colSet = _ColCheck(s.jv, ngh);
-                if (DEBUG_MPMstar){std::cout<<"Col set size: "<< colSet.size() <<std::endl;}
+                //if (DEBUG_MPMstar){std::cout<<"Col set size: "<< colSet.size() <<std::endl;}
                 if (colSet.size() > 0) { // there is collision.
                     _LookAhead(ngh,&colSet);
                     _BackProp(s.id, colSet);
@@ -192,7 +188,7 @@ namespace raplab{
 
 
         } // end while loop
-        if ( DEBUG_MPMstar ) { std::cout << "[DEBUG] Solution not found but run out open?..." << std::endl; }
+        //if ( DEBUG_MPMstar ) { std::cout << "[DEBUG] Solution not found but run out open?..." << std::endl; }
         if (Statics) {states_generate = _id_gen;}
 
         std::vector< std::vector<long> > jp;
@@ -223,158 +219,42 @@ namespace raplab{
         return _stats;
     } ;
 
-    bool MPMstar::_PibtorNot(long sid) {
+    bool MPMstar::_GetMPMngh(const long &sid, std::vector<std::vector<long>> *out) {
         const auto& colSet = _states[sid].colSet;
         const auto& jv = _states[sid].jv;
-        if (_Pibt_policy.find(jv) != _Pibt_policy.end()) {
-            int max_size = 0;
-            for (const auto &policy: _Pibt_policy.at(jv)) {
-                if (policy.first.size() > max_size) {
-                    max_size = policy.first.size();
-                }
-            }
-            return colSet.size() > max_size;
-        } else {
+        if (colSet.empty()){
+            _GetLimitNgh(sid, out);
+            _Update_closed(sid,out);
             return true;
-        }
-    }
-
-    bool MPMstar::_Pibt_required(long sid) {
-        const auto& colSet = _states[sid].colSet;
-        const auto& jv = _states[sid].jv;
-
-        if (_Pibt_policy.find(jv) != _Pibt_policy.end()) {
-            // 找到最大 size 的 policy
-            std::vector<int> max_policy_agents;
-            int max_size = 0;
-            for (const auto &policy: _Pibt_policy.at(jv)) {
-                if (policy.first.size() > max_size) {
-                    max_size = policy.first.size();
-                    max_policy_agents.clear();
-                    for (int agent : policy.first) {
-                        max_policy_agents.push_back(agent);
-                    }
-                }
-            }
-
-            // 提取 colSet 的 agentId
-            std::vector<int> col;
+        } else {
+            // create current collision set
+            std::set<int> curr_col;
             for (const auto& pair : colSet) {
                 int agentId = pair.first;
-                col.push_back(agentId);
+                curr_col.insert(agentId);
             }
-
-            // 检查 col 是否是 max_policy_agents 的子集
-            std::sort(col.begin(), col.end());
-            std::sort(max_policy_agents.begin(), max_policy_agents.end());
-            return std::includes(max_policy_agents.begin(), max_policy_agents.end(), col.begin(), col.end());
-        } else {
-            return true;
-        }
-    }
-
-    bool MPMstar::_GetNgh(const long &sid, std::vector<std::vector<long>> *out) {
-        out->clear();
-        const auto& colSet = _states[sid].colSet;
-        const auto& jv = _states[sid].jv;
-        if(!colSet.empty()){
-            if (Statics) {
-                if (colSet.size() > max_colsets) {
-                    max_colsets = colSet.size();
-                }
-            }
-            if (_Pibt_required(sid)) {
-                std::vector<std::vector<long>> pibt_policy;
-                pibt_policy = Pibt_process(colSet, sid);
-                if (Statics){count_of_pibt += 1;}
-                if(pibt_policy.empty()) {
-                        if (Statics) { fail_of_pibt += 1; }
-                        // check if it has pibt policy  though we fail we could till do max colset plan
-                        if (_Pibt_policy.find(jv) != _Pibt_policy.end()) {
-                        // has pibt policy
-                            _getMaxPibtngh(_Pibt_policy.at(jv), sid, out);
-                            _RemoveDuplicates(out);
-                            if (_Check_closedset(sid, out)) {
-                                if (Statics) { one_step_pibt += 1; }
-                                Pibt_one(sid, out);
-                            }
-                            _Reopen(sid);
-                            _Update_closed(sid,out);
-                            return true;
-                         } else {
-                        // no pibt policy get full action,  worst choice
-                        if (Statics) { one_step_pibt += 1; }
-                         Pibt_one(sid, out);
-                         _Reopen(sid);
-                         _Update_closed(sid,out);
-                         return true;
-                         //return _GetLimitNgh(sid,out);
-                        }
-                } else {
-                    // pibt success and directly use it cause it has biggest set
-                    //_UnitePolicy(colSet, pibt_policy, jv);
-                    std::vector<int> col;
-                    for (const auto& pair : colSet) {
-                        int agentId = pair.first;
-                        col.push_back(agentId);
-                    }
-                    _GetPibtNgh(col, pibt_policy,sid,out);
-                    // Todo inherit its own policy
-                    if (_Pibt_policy.find(jv) != _Pibt_policy.end()) {
-                        _Pibt_policy[jv][col] = pibt_policy;
-                    } else {
-                        std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> colAndPolicy;
-                        colAndPolicy[col] = pibt_policy;
-                        _Pibt_policy[jv] = colAndPolicy;
-                    }
-                    _RemoveDuplicates(out);
-                    if (_Check_closedset(sid, out)) {
-                        if (Statics) { one_step_pibt += 1; }
-                        Pibt_one(sid, out);
-                    }
-                    _Reopen(sid);
-                    _Update_closed(sid,out);
-                    return true;
-                }
-            } else {
-            _getMaxPibtngh(_Pibt_policy.at(jv), sid, out);
-            _RemoveDuplicates(out);
-            if (_Check_closedset(sid, out)) {
-                if (Statics) { one_step_pibt += 1; }
-                Pibt_one(sid, out);
-            }
-            _Reopen(sid);
-            _Update_closed(sid, out);
-            return true;
-        }
-        } else {
-            // No needs to plan pibt, get best policy
-            if (_Pibt_policy.find(jv) != _Pibt_policy.end()) {
-                std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> policies = _Pibt_policy.at(jv);
-                _getMaxPibtngh(policies,sid,out);
+            if (Ic_cache.find(jv) != Ic_cache.end()&& Ic_cache.at(jv) != curr_col){
+                _Get_OneStepPibt(curr_col,sid,out);
+                if(Statics) {one_step_pibt += 1, max_colsets = curr_col.size();}
                 if (_Check_closedset(sid, out)) {
-                    if (Statics) { one_step_pibt += 1; }
-                    Pibt_one(sid, out);
+                    if (Statics) {action_tree += 1;}
+                    _ActionTree(sid, out);
                 }
                 _Reopen(sid);
-                std::vector<std::vector<long>> ngh3;
-                _GetLimitNgh(sid,&ngh3);
-                out->insert(out->end(), ngh3.begin(), ngh3.end());
-                _RemoveDuplicates(out);
-                _Check_closedset(sid, out); // if optimal path already in closed set just simply erase it
-                _Update_closed(sid,out);
+                _Update_closed(sid, out);
+                Ic_cache[jv] = curr_col;
                 return true;
             } else {
-                // pibt policy not exists, optimal policy
-                // Thank you so much you are the kindest scenario
-                _GetLimitNgh(sid, out);
-                _Update_closed(sid,out);
+                if (Statics) {action_tree += 1;}
+                _ActionTree(sid, out);
+                _Reopen(sid);
+                _Update_closed(sid, out);
                 return true;
             }
         }
     }
 
-    bool MPMstar::Pibt_one(const long &sid, std::vector< std::vector<long> >* out) {
+    bool MPMstar::_ActionTree(const long &sid, std::vector< std::vector<long> >* out) {
         const auto& jv = _states[sid].jv;
         if (_All_tree.find(jv) == _All_tree.end()){
             // initialize tree
@@ -407,6 +287,7 @@ namespace raplab{
     }
 
     void MPMstar::_One_step_Pibt(const long &sid, std::vector<long> *Sto) {
+        // one step pibt for full action, not Ic pibt
         const auto& Sfrom = _states[sid].jv;
         // initialize priority table
         for (auto &a: _All_pibtAgent_order[_states[sid].jv]) {
@@ -468,65 +349,40 @@ namespace raplab{
         }
     }
 
-    std::vector<std::vector<long>> MPMstar::Pibt_process(const std::unordered_map<int, int> colSet, const long &sid) {
-        std::vector<std::vector<long>> pibt_policy;
-        std::vector<long> start;
-        std::vector<long> goal;
+    bool MPMstar::_Get_OneStepPibt(std::set<int> col, const long &sid, std::vector<std::vector<long>> *out) {
         const auto& Sfrom = _states[sid].jv;
-        // generate folloing policy
-        std::unordered_map<int, MstarPolicy> colPolicies;
-        int newId = 0;
-        for (const auto& pair : colSet) {
-            int agentId = pair.first;
-            start.push_back(Sfrom[agentId]);
-            goal.push_back(_vd[agentId]);
-            colPolicies[newId] = _policies.at(agentId);
-            ++newId;
+        std::vector<long> Sto(_vo.size(), -1);
+        // assign individual optimal path for agents not in collision set
+        for (size_t ri = 0; ri < _nAgent; ++ri) {
+            if (col.find(ri) == col.end()) {
+                Sto[ri] = _policies[ri].Phi(Sfrom[ri]);
+            }
         }
-        bool result = planner._Solve(start,goal,_tlimit,1.0,&colPolicies);
-        if (result){
-            pibt_policy = planner.GetPlan();
-            pibt_policy.erase(pibt_policy.begin());
-            return pibt_policy;
-        } else {
-            // not success return a blank vector;
-            return pibt_policy;
+        // if order not exists, initialize order of current jv
+        if (_All_pibtAgent_order.find(_states[sid].jv) == _All_pibtAgent_order.end()) {
+            // if current pibt agent order not exists, initialize
+            std::vector<int> agent(Sfrom.size());
+            std::iota(agent.begin(), agent.end(), 0);
+            std::sort(agent.begin(), agent.end(), [&](int a, int b) {
+                return _policies[a].H(Sfrom[a]) < _policies[b].H(Sfrom[b]);
+            });
+            _All_node_Agentorder[_states[sid].jv] = agent;
+            std::vector<Agent> pibt_agents;
+            double gap = 1.0 / (agent.size() + 1);
+            for (size_t i = 0; i < agent.size(); ++i) {
+                pibt_agents.emplace_back(i, 1 - i * gap);
+            }
+            for (auto &a: pibt_agents) {
+                a.set_trueid(agent[a.id]);
+            }
+            _All_pibtAgent_order[_states[sid].jv] = pibt_agents;
         }
-        return pibt_policy;
+        _One_step_Pibt(sid,&Sto);
+        out->push_back(Sto);
+        return true;
     }
 
-    bool MPMstar::_GetPibtNgh(std::vector<int> Pibt_agent, std::vector<std::vector<long>> pibt_policy,
-                              const long &sid, std::vector<std::vector<long>> *out) {
-        std::vector<long> pibt_sto = pibt_policy[0];
-        const auto& Sfrom = _states[sid].jv;
-        std::vector< std::vector<long> > ngh_vec;
-        ngh_vec.resize(_nAgent);
-        // insert pibt
-        for (size_t index = 0; index < Pibt_agent.size(); ++index) {
-            ngh_vec[Pibt_agent[index]].push_back(pibt_sto[index]);
-        }
-        std::unordered_set<int> pibt_agent_set(Pibt_agent.begin(), Pibt_agent.end());
-        for (size_t ri = 0; ri < _nAgent; ++ri) {
-            if (pibt_agent_set.find(ri) == pibt_agent_set.end()) {
-                ngh_vec[ri].push_back(_policies[ri].Phi(Sfrom[ri]));
-            }
-        }
-        TakeCombination(ngh_vec, out);
-        // for its ngh jv state  inherits the policy
-        std::vector<long> jv = out->at(0);
-        std::vector<std::vector<long>> kid_policy;
-        std::copy(pibt_policy.begin() + 1, pibt_policy.end(), std::back_inserter(kid_policy));
-        if (!kid_policy.empty()) {
-            if (_Pibt_policy.find(jv) != _Pibt_policy.end()) {
-                _Pibt_policy[jv][Pibt_agent] = kid_policy;
-            } else {
-                std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> colAndPolicy;
-                colAndPolicy[Pibt_agent] = kid_policy;
-                _Pibt_policy[jv] = colAndPolicy;
-            }
-        }
-        return true;
-    };
+    // not using anymore
 
     bool MPMstar::_GetLimitNgh(const long& sid, std::vector< std::vector<long> >* out)
     {
@@ -563,7 +419,6 @@ namespace raplab{
         // std::cout << " take combi done" << std::endl;
         return true;
     };
-
 
     bool MPMstar::_Init() {
 
@@ -763,44 +618,6 @@ namespace raplab{
         return out;
     }
 
-    bool MPMstar::_RemoveDuplicates(std::vector<std::vector<long>>* out) {
-        std::unordered_set<std::vector<long>, VectorHash> unique_elements;
-        std::vector<std::vector<long>> unique_out;
-
-        for (const auto& element : *out) {
-            if (unique_elements.insert(element).second) {
-                unique_out.push_back(element);
-            }
-        }
-
-        *out = std::move(unique_out);
-        return true;
-    }
-
-    bool MPMstar::_getMaxPibtngh(std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> policies,
-                                 const long &sid, std::vector<std::vector<long>> *out) {
-        std::vector<std::vector<int>> Maxcols;
-        size_t max_size = 0;
-        for (const auto& policy : policies) {
-            if (policy.first.size() > max_size) {
-                max_size = policy.first.size();
-            }
-        }
-        for (const auto& policy : policies) {
-            if (policy.first.size() == max_size) {
-                Maxcols.push_back(policy.first);
-                break;
-            }
-        }
-        //debugger
-        for (const auto& col : Maxcols){
-            std::vector<std::vector<long>> out_i;
-            _GetPibtNgh(col, policies.at(col),sid,&out_i);
-            out->insert(out->end(), out_i.begin(), out_i.end());
-        }
-        return true;
-    }
-
     void MPMstar::_LookAhead(std::vector<long> jv , std::unordered_map<int, int> *col_set) {
         for (int i = 0; i < look_ahead_factor; i++){
             if (jv == _vd){
@@ -814,26 +631,6 @@ namespace raplab{
             _ColSetUnion(col, col_set);
             jv = jv_next;
             jv_next.clear();
-        }
-    }
-
-    std::vector<int> MPMstar::_Get_pibt_agent(const long &sid, std::unordered_map<int, int> col_set) {
-        auto& jv = _states[sid].jv;
-        std::vector<int> col;
-        for (const auto& pair : col_set) {
-            int agentId = pair.first;
-            col.push_back(agentId);
-        }
-        if (_planAgent.find(jv) == _planAgent.end()){
-            _planAgent[jv] = col;
-            return col;
-        } else {
-            if (_planAgent[jv].size() >= col_set.size()){
-                return _planAgent[jv];
-            } else {
-                _planAgent[jv] = col;
-                return col;
-            }
         }
     }
 
@@ -1017,6 +814,279 @@ namespace raplab{
 
         outFile.close();
     }
+
+    // not using anymore
+    /*
+    bool MPMstar::_GetNgh(const long &sid, std::vector<std::vector<long>> *out) {
+        out->clear();
+        const auto& colSet = _states[sid].colSet;
+        const auto& jv = _states[sid].jv;
+        if(!colSet.empty()){
+            if (Statics) {
+                if (colSet.size() > max_colsets) {
+                    max_colsets = colSet.size();
+                }
+            }
+            if (_PibtorNot(sid)) {
+                std::vector<std::vector<long>> pibt_policy;
+                pibt_policy = Pibt_process(colSet, sid);
+                if (Statics){count_of_pibt += 1;}
+                if(pibt_policy.empty()) {
+                        if (Statics) { fail_of_pibt += 1; }
+                        // check if it has pibt policy  though we fail we could till do max colset plan
+                        if (_Pibt_policy.find(jv) != _Pibt_policy.end()) {
+                        // has pibt policy
+                            _getMaxPibtngh(_Pibt_policy.at(jv), sid, out);
+                            _RemoveDuplicates(out);
+                            if (_Check_closedset(sid, out)) {
+                                if (Statics) { one_step_pibt += 1; }
+                                _ActionTree(sid, out);
+                            }
+                            _Reopen(sid);
+                            _Update_closed(sid,out);
+                            return true;
+                         } else {
+                        // no pibt policy get full action,  worst choice
+                        if (Statics) { one_step_pibt += 1; }
+                         _ActionTree(sid, out);
+                         _Reopen(sid);
+                         _Update_closed(sid,out);
+                         return true;
+                         //return _GetLimitNgh(sid,out);
+                        }
+                } else {
+                    // pibt success and directly use it cause it has biggest set
+                    //_UnitePolicy(colSet, pibt_policy, jv);
+                    std::vector<int> col;
+                    for (const auto& pair : colSet) {
+                        int agentId = pair.first;
+                        col.push_back(agentId);
+                    }
+                    _GetPibtNgh(col, pibt_policy,sid,out);
+                    // Todo inherit its own policy
+                    if (_Pibt_policy.find(jv) != _Pibt_policy.end()) {
+                        _Pibt_policy[jv][col] = pibt_policy;
+                    } else {
+                        std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> colAndPolicy;
+                        colAndPolicy[col] = pibt_policy;
+                        _Pibt_policy[jv] = colAndPolicy;
+                    }
+                    _RemoveDuplicates(out);
+                    if (_Check_closedset(sid, out)) {
+                        if (Statics) { one_step_pibt += 1; }
+                        _ActionTree(sid, out);
+                    }
+                    _Reopen(sid);
+                    _Update_closed(sid,out);
+                    return true;
+                }
+            } else {
+            _getMaxPibtngh(_Pibt_policy.at(jv), sid, out);
+            _RemoveDuplicates(out);
+            if (_Check_closedset(sid, out)) {
+                if (Statics) { one_step_pibt += 1; }
+                _ActionTree(sid, out);
+            }
+            _Reopen(sid);
+            _Update_closed(sid, out);
+            return true;
+        }
+        } else {
+            // No needs to plan pibt, get best policy
+            if (_Pibt_policy.find(jv) != _Pibt_policy.end()) {
+                std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> policies = _Pibt_policy.at(jv);
+                _getMaxPibtngh(policies,sid,out);
+                if (_Check_closedset(sid, out)) {
+                    if (Statics) { one_step_pibt += 1; }
+                    _ActionTree(sid, out);
+                }
+                _Reopen(sid);
+                std::vector<std::vector<long>> ngh3;
+                _GetLimitNgh(sid,&ngh3);
+                out->insert(out->end(), ngh3.begin(), ngh3.end());
+                _RemoveDuplicates(out);
+                _Check_closedset(sid, out); // if optimal path already in closed set just simply erase it
+                _Update_closed(sid,out);
+                return true;
+            } else {
+                // pibt policy not exists, optimal policy
+                // Thank you so much you are the kindest scenario
+                _GetLimitNgh(sid, out);
+                _Update_closed(sid,out);
+                return true;
+            }
+        }
+    }
+
+     bool MPMstar::_PibtorNot(long sid) {
+        const auto& colSet = _states[sid].colSet;
+        const auto& jv = _states[sid].jv;
+        if (_Pibt_policy.find(jv) != _Pibt_policy.end()) {
+            int max_size = 0;
+            for (const auto &policy: _Pibt_policy.at(jv)) {
+                if (policy.first.size() > max_size) {
+                    max_size = policy.first.size();
+                }
+            }
+            return colSet.size() > max_size;
+        } else {
+            return true;
+        }
+    }
+
+    bool MPMstar::_Pibt_required(long sid) {
+        const auto& colSet = _states[sid].colSet;
+        const auto& jv = _states[sid].jv;
+
+        if (_Pibt_policy.find(jv) != _Pibt_policy.end()) {
+            // 找到最大 size 的 policy
+            std::vector<int> max_policy_agents;
+            int max_size = 0;
+            for (const auto &policy: _Pibt_policy.at(jv)) {
+                if (policy.first.size() > max_size) {
+                    max_size = policy.first.size();
+                    max_policy_agents.clear();
+                    for (int agent : policy.first) {
+                        max_policy_agents.push_back(agent);
+                    }
+                }
+            }
+
+            // 提取 colSet 的 agentId
+            std::vector<int> col;
+            for (const auto& pair : colSet) {
+                int agentId = pair.first;
+                col.push_back(agentId);
+            }
+
+            // 检查 col 是否是 max_policy_agents 的子集
+            std::sort(col.begin(), col.end());
+            std::sort(max_policy_agents.begin(), max_policy_agents.end());
+            return std::includes(max_policy_agents.begin(), max_policy_agents.end(), col.begin(), col.end());
+        } else {
+            return true;
+        }
+    }
+
+    std::vector<std::vector<long>> MPMstar::Pibt_process(const std::unordered_map<int, int> colSet, const long &sid) {
+        std::vector<std::vector<long>> pibt_policy;
+        std::vector<long> start;
+        std::vector<long> goal;
+        const auto& Sfrom = _states[sid].jv;
+        // generate folloing policy
+        std::unordered_map<int, MstarPolicy> colPolicies;
+        int newId = 0;
+        for (const auto& pair : colSet) {
+            int agentId = pair.first;
+            start.push_back(Sfrom[agentId]);
+            goal.push_back(_vd[agentId]);
+            colPolicies[newId] = _policies.at(agentId);
+            ++newId;
+        }
+        bool result = planner._Solve(start,goal,_tlimit,1.0,&colPolicies);
+        if (result){
+            pibt_policy = planner.GetPlan();
+            pibt_policy.erase(pibt_policy.begin());
+            return pibt_policy;
+        } else {
+            // not success return a blank vector;
+            return pibt_policy;
+        }
+        return pibt_policy;
+    }
+
+     bool MPMstar::_RemoveDuplicates(std::vector<std::vector<long>>* out) {
+        std::unordered_set<std::vector<long>, VectorHash> unique_elements;
+        std::vector<std::vector<long>> unique_out;
+
+        for (const auto& element : *out) {
+            if (unique_elements.insert(element).second) {
+                unique_out.push_back(element);
+            }
+        }
+
+        *out = std::move(unique_out);
+        return true;
+    }
+
+    bool MPMstar::_getMaxPibtngh(std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> policies,
+                                 const long &sid, std::vector<std::vector<long>> *out) {
+        std::vector<std::vector<int>> Maxcols;
+        size_t max_size = 0;
+        for (const auto& policy : policies) {
+            if (policy.first.size() > max_size) {
+                max_size = policy.first.size();
+            }
+        }
+        for (const auto& policy : policies) {
+            if (policy.first.size() == max_size) {
+                Maxcols.push_back(policy.first);
+                break;
+            }
+        }
+        //debugger
+        for (const auto& col : Maxcols){
+            std::vector<std::vector<long>> out_i;
+            _GetPibtNgh(col, policies.at(col),sid,&out_i);
+            out->insert(out->end(), out_i.begin(), out_i.end());
+        }
+        return true;
+    }
+
+      std::vector<int> MPMstar::_Get_pibt_agent(const long &sid, std::unordered_map<int, int> col_set) {
+        auto& jv = _states[sid].jv;
+        std::vector<int> col;
+        for (const auto& pair : col_set) {
+            int agentId = pair.first;
+            col.push_back(agentId);
+        }
+        if (_planAgent.find(jv) == _planAgent.end()){
+            _planAgent[jv] = col;
+            return col;
+        } else {
+            if (_planAgent[jv].size() >= col_set.size()){
+                return _planAgent[jv];
+            } else {
+                _planAgent[jv] = col;
+                return col;
+            }
+        }
+    }
+
+     bool MPMstar::_GetPibtNgh(std::vector<int> Pibt_agent, std::vector<std::vector<long>> pibt_policy,
+                              const long &sid, std::vector<std::vector<long>> *out) {
+        std::vector<long> pibt_sto = pibt_policy[0];
+        const auto& Sfrom = _states[sid].jv;
+        std::vector< std::vector<long> > ngh_vec;
+        ngh_vec.resize(_nAgent);
+        // insert pibt
+        for (size_t index = 0; index < Pibt_agent.size(); ++index) {
+            ngh_vec[Pibt_agent[index]].push_back(pibt_sto[index]);
+        }
+        std::unordered_set<int> pibt_agent_set(Pibt_agent.begin(), Pibt_agent.end());
+        for (size_t ri = 0; ri < _nAgent; ++ri) {
+            if (pibt_agent_set.find(ri) == pibt_agent_set.end()) {
+                ngh_vec[ri].push_back(_policies[ri].Phi(Sfrom[ri]));
+            }
+        }
+        TakeCombination(ngh_vec, out);
+        // for its ngh jv state  inherits the policy
+        std::vector<long> jv = out->at(0);
+        std::vector<std::vector<long>> kid_policy;
+        std::copy(pibt_policy.begin() + 1, pibt_policy.end(), std::back_inserter(kid_policy));
+        if (!kid_policy.empty()) {
+            if (_Pibt_policy.find(jv) != _Pibt_policy.end()) {
+                _Pibt_policy[jv][Pibt_agent] = kid_policy;
+            } else {
+                std::unordered_map<std::vector<int>, std::vector<std::vector<long>>> colAndPolicy;
+                colAndPolicy[Pibt_agent] = kid_policy;
+                _Pibt_policy[jv] = colAndPolicy;
+            }
+        }
+        return true;
+    };
+    */
+
 
 
 } // end namespace rzq

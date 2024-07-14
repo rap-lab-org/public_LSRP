@@ -45,15 +45,12 @@ int TestMPMstar_movingai(){
         int states_expand = planner.states_expand;
         int max_colsets = planner.max_colsets;
         int max_ngh_size = planner.max_ngh_size;
-        int all_Action_counts = planner.all_action_counts;
-        int count_of_pibt = planner.count_of_pibt;
-        int fail_of_pibt = planner.fail_of_pibt;
         int one_step_pibt = planner.one_step_pibt;
         double inflation = cost[0]/planner.fmin[0];
-        std::cout<<"RunTime: "<<runtime<<"| SOC :"<<cost[0]<<"| Fmin: "<<planner.fmin[0]<<" | Individual optimal cost: "<<planner.loweest_bound<<"| Approximate w: "<<inflation
+        std::cout<<"RunTime: "<<runtime<<"| SOC :"<<cost[0]<<"| Fmin: "<<planner.fmin[0]<<" | Individual optimal cost: "<<planner.lowest_bound<<"| Approximate w: "<<inflation
         <<" | Generate states: "<<states_generate<<"| Expand states: "<<states_expand<<"| Max collision set size: "<<
-        max_colsets<<"| Max ngh size: "<<max_ngh_size<<"| Count of Full action generates  "<<all_Action_counts
-        <<"| Count of Pibt: "<<count_of_pibt<<"| Fail of Pibt "<<fail_of_pibt<<"| One step PIBT: "<<one_step_pibt<<std::endl;
+        max_colsets<<"| Max ngh size: "<<max_ngh_size<<"| One step PIBT: "<<one_step_pibt<<"| Action tree :"<<
+        planner.action_tree<<std::endl;
 
         //std::cout<<"| SOC :"<<cost[0]<<std::endl;
     //}
