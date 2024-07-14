@@ -63,12 +63,10 @@ namespace raplab{
 
             // check timeout
             // Todo  unindex this part when debug finished
-            /*
             if ( std::chrono::duration<double>(std::chrono::steady_clock::now() - _t0).count() > _tlimit ) {
                 std::cout << "[INFO] MPMstar::Search times out!" << std::endl;
                 break; // time out!
             }
-            */
             // pop from focal  update focal at same time
             //MState& s = _states[ _open.begin()->second ];
             long curr_id = _focal.begin()->second;
@@ -77,9 +75,12 @@ namespace raplab{
             _focal.erase(_focal.begin());
 
             //Debug
-            /*if (s.jv[0] == 727 && s.jv[1] == 728) {
-                std::cout<<"stop brp!"<<std::endl;
-            }*/
+            /*
+            if (s.jv[0] == 486 && s.jv[1] == 918) {
+                std::cout<<"stop bro!"<<std::endl;
+                std::cout<<"Current f value"<<(s.g + _H(s.jv))[0]<<std::endl;
+            }
+             */
 
 
 
@@ -126,10 +127,21 @@ namespace raplab{
             for (auto& ngh : nghs) { // loop over all limited neighbors.
 
                 auto colSet = _ColCheck(s.jv, ngh);
-                //if (DEBUG_MPMstar){std::cout<<"Col set size: "<< colSet.size() <<std::endl;}
-                if (colSet.size() > 0) { // there is collision.
+                if (colSet.size() > 0) { // there is collision. look ahead k steps
                     _LookAhead(ngh,&colSet);
-                    _BackProp(s.id, colSet);
+                }
+                //
+                auto ngh_str = jv2str(ngh);
+                // dont worry if the first time colset > 0, then it wont have _best
+                if ( _best.find( ngh_str ) != _best.end())
+                {
+                    _ColSetUnion(colSet,&(_states[_best.at( ngh_str )].colSet));
+                    _BackProp(s.id,_states[_best.at( ngh_str )].colSet);
+                } else {
+                    _BackProp(s.id,colSet);
+                }
+
+                if (colSet.size() > 0) { // there is collision.
                     continue;
                 }
 
@@ -153,29 +165,27 @@ namespace raplab{
                 //     _AddBackSet(s.id, dom_id);
                 //   }
                 // }
-
-                auto ngh_str = jv2str(ngh);
+                //Debug
                 if ( (_best.find( ngh_str ) != _best.end()) &&
                      (_states[_best[ngh_str]].g[0] <= g_ngh[0] ) )
                 {
                     continue;
                 }
-
-                // add to open.
                 long curr_id = _GenId();
                 _states[curr_id] = MState();
                 _states[curr_id].id = curr_id;
-                _states[curr_id].jv = ngh;
                 _states[curr_id].g = g_ngh;
+                _states[curr_id].jv = ngh;
                 _states[curr_id].colSet = std::unordered_map<int, int>(); // collision set, empty set.
+                // add to open.
                 _open.insert( std::make_pair(f_ngh, curr_id) );
                 _stats["num_gen"] += 1;
                 // _result.n_generated++;
                 // if (_best.find(ngh_str) == _best.end()) {
                 //   _best[ngh_str] = std::unordered_set<long>();
                 // }
-                _best[ngh_str] = curr_id;
                 _AddBackSet(s.id, curr_id);
+                _best[ngh_str] = curr_id;
                 _parent[curr_id] = s.id; // track parent.
 
             }

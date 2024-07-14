@@ -1,0 +1,123 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Release-d0094a50bb2071803777.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.3"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7
+					]
+				}
+			],
+			"name" : "Release",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "cppraplab",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "cppraplab::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-cppraplab-Release-16dfe1665c816e1783bd.json",
+					"name" : "cppraplab",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "test_astar::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-test_astar-Release-6b65bfdddb3c95a08aa9.json",
+					"name" : "test_astar",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "test_dijkstra::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-test_dijkstra-Release-7b3eb1ab70ae0c28c7f8.json",
+					"name" : "test_dijkstra",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "test_graph::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-test_graph-Release-40879faa2c5969ad2cdb.json",
+					"name" : "test_graph",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "test_mapf_mpmstar::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-test_mapf_mpmstar-Release-e41e81d98819ae902f1f.json",
+					"name" : "test_mapf_mpmstar",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "test_mapf_mstar::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-test_mapf_mstar-Release-792ff7b576453583ef23.json",
+					"name" : "test_mapf_mstar",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "test_mapf_pibt::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-test_mapf_pibt-Release-7886bec9f046dc65ba3e.json",
+					"name" : "test_mapf_pibt",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "test_movingai::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-test_movingai-Release-095ce27314863648b9e0.json",
+					"name" : "test_movingai",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp/cmake-build-release",
+		"source" : "C:/Users/David Zhou/Documents/GitHub/public_LSRP/cpp"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 6
+	}
+}
