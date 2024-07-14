@@ -29,6 +29,9 @@ namespace raplab{
 
 #define DEBUG_MPMstar 0
 #define Statics 1
+#define LookaheadActivated 1
+#define Heuristic_inflation 1
+#define focal_range 1.2
 std::ostream& operator<<(std::ostream& os, MState& state);
 void CompileHelper();
 
@@ -101,6 +104,7 @@ void CompileHelper();
         int one_step_pibt;
         int lowest_bound;
         double cost_times;
+        int optimal_path;
         CostVec fmin;
 
 

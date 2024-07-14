@@ -53,7 +53,7 @@ namespace raplab{
         _Init();
         if ( DEBUG_MPMstar ) { std::cout << "[DEBUG] after init..." << std::endl; }
         if ( Statics ) {runtime = 0, states_generate = 0, states_expand = 0, max_colsets = 0, max_ngh_size = 0,all_action_counts = 0,action_tree=0,
-                        fail_of_pibt=0,one_step_pibt = 0, lowest_bound = _H(starts)[0];}
+                        fail_of_pibt=0,one_step_pibt = 0, lowest_bound = _H(starts)[0]/Heuristic_inflation, optimal_path = 0;}
         int counter = 0;
 
         // main while loop
@@ -127,8 +127,11 @@ namespace raplab{
             for (auto& ngh : nghs) { // loop over all limited neighbors.
 
                 auto colSet = _ColCheck(s.jv, ngh);
-                if (colSet.size() > 0) { // there is collision. look ahead k steps
-                    _LookAhead(ngh,&colSet);
+
+                if (LookaheadActivated) {
+                    if (!colSet.empty()) { // there is collision. look ahead k steps
+                        _LookAhead(ngh, &colSet);
+                    }
                 }
                 //
                 auto ngh_str = jv2str(ngh);
@@ -150,7 +153,7 @@ namespace raplab{
                 // get cost vector
                 auto cuv = _GetTransCost(s.jv, ngh, s.id);
                 CostVec g_ngh = s.g + cuv;
-                CostVec f_ngh = g_ngh + _H(ngh); // note that _wH is considered within _H()
+                CostVec f_ngh = g_ngh +  _H(ngh); // note that _wH is considered within _H()
 
                 // if ( _SolFilter(f_ngh) ) { // dominated by some already found solution.
                 //   continue;
@@ -233,6 +236,7 @@ namespace raplab{
         const auto& colSet = _states[sid].colSet;
         const auto& jv = _states[sid].jv;
         if (colSet.empty()){
+            if(Statics){optimal_path += 1;}
             _GetLimitNgh(sid, out);
             _Update_closed(sid,out);
             return true;
@@ -490,13 +494,11 @@ namespace raplab{
         for (int ri = 0; ri < _nAgent; ri++) {
             out += _policies[ri].H(jv[ri]);
         }
-        /*
-        if (_wH > 1.0) { // heuristic inflation
+        if(Heuristic_inflation) { // heuristic inflation
             for (size_t j = 0; j < out.size(); j++) {
-                out[j] = long(out[j] * _wH) ; // NOTE the long conversion here !
+                out[j] = long(out[j] * Heuristic_inflation) ; // NOTE the long conversion here !
             }
         }
-         */
         return out;
     };
 
@@ -698,7 +700,7 @@ namespace raplab{
         // update foal list
         CostVec curr_fmin = _open.begin()->first;
         fmin = curr_fmin;
-        CostVec epsilon = static_cast<CostVec>(_wH * fmin);
+        CostVec epsilon = static_cast<CostVec>(focal_range * fmin);
         _focal.clear();
         // list in focal is from fmin to 1.2 fmin
         for (const auto& elem : _open) {
@@ -706,8 +708,8 @@ namespace raplab{
             if (f_value[0] >= fmin[0] && f_value[0] <= epsilon[0]) {
                 long state_id = elem.second;
                 // Here we need to compute the joint vertex corresponding h value for this state_id
-                CostVec h_value = _H(_states[state_id].jv); // Compute h_value for this state_id
-                _focal.insert({h_value, state_id});
+                CostVec c_value = _H(_states[state_id].jv); // Compute h_value for this state_id
+                _focal.insert({c_value, state_id});
             }
         }
     }
