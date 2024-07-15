@@ -105,6 +105,7 @@ void CompileHelper();
         int lowest_bound;
         double cost_times;
         int optimal_path;
+        int detect_Collision;
         CostVec fmin;
 
 
@@ -207,6 +208,12 @@ void CompileHelper();
 
         virtual void _Debug_print(long sid);
 
+        virtual CostVec _C(const std::vector<long>& jv);
+
+        virtual CostVec _Csize(long sid);
+
+        virtual std::vector<int> _Sort(long sid);
+
         bool Pibt(Agent *agent1, Agent *agent2, const std::vector<long> &Sfrom, std::vector<long> &Sto,std::vector<Agent> agents_);
 
         bool checkOccupied(long v, const std::vector<long> &Sto,std::vector<Agent> agents_);
@@ -214,6 +221,8 @@ void CompileHelper();
         Agent *mayPush(long v, const std::vector<long> &Sfrom, const std::vector<long> &Sto, std::vector<Agent> agents_);
 
         void _Get_action(const long& sid, std::vector<long>* Sto);
+
+
 
         // not using anymore
         /*

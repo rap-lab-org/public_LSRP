@@ -71,6 +71,7 @@ namespace raplab{
             //MState& s = _states[ _open.begin()->second ];
             long curr_id = _focal.begin()->second;
             MState& s = _states[ curr_id];
+            if (DEBUG_MPMstar) {std::cout<<"Current state: "<<curr_id<<std::endl;}
              _open.erase(std::make_pair(s.g + _H(s.jv),curr_id));
             _focal.erase(_focal.begin());
 
@@ -247,7 +248,7 @@ namespace raplab{
                 int agentId = pair.first;
                 curr_col.insert(agentId);
             }
-            if (Ic_cache.find(jv) != Ic_cache.end()&& Ic_cache.at(jv) != curr_col){
+            if ((Ic_cache.find(jv) != Ic_cache.end()&& Ic_cache.at(jv) != curr_col)||(Ic_cache.find(jv) == Ic_cache.end()&&curr_col.size()>0)){
                 _Get_OneStepPibt(curr_col,sid,out);
                 if(Statics) {one_step_pibt += 1, max_colsets = curr_col.size();}
                 if (_Check_closedset(sid, out)) {
@@ -316,10 +317,13 @@ namespace raplab{
         // initialize order for get actions and
         if (_All_pibtAgent_order.find(_states[sid].jv) == _All_pibtAgent_order.end()) {
             std::vector<int> agent(Sfrom.size());
+            agent = _Sort(sid);
+            /*
             std::iota(agent.begin(), agent.end(), 0);
             std::sort(agent.begin(), agent.end(), [&](int a, int b) {
                 return _policies[a].H(Sfrom[a]) < _policies[b].H(Sfrom[b]);
             });
+            */
             _All_node_Agentorder[_states[sid].jv] = agent;
             std::vector<Agent> pibt_agents;
             double gap = 1.0 / (agent.size() + 1);
@@ -344,6 +348,9 @@ namespace raplab{
             int depth = curr_node->_depth + 1;
             std::vector<long> nghs = _graph->GetSuccs(Sfrom[agent_id]);
             nghs.push_back(Sfrom[agent_id]);
+            std::sort(nghs.begin(), nghs.end(), [&](long v1, long v2) {
+                return _policies[agent_id].H(v1) < _policies[agent_id].H(v2);
+            });
             for (long ngh : nghs) {
                 tree.push_back(tree_node(agent_id, ngh, depth, curr_node));
             }
@@ -376,10 +383,13 @@ namespace raplab{
         if (_All_pibtAgent_order.find(_states[sid].jv) == _All_pibtAgent_order.end()) {
             // if current pibt agent order not exists, initialize
             std::vector<int> agent(Sfrom.size());
+            agent = _Sort(sid);
+            /*
             std::iota(agent.begin(), agent.end(), 0);
             std::sort(agent.begin(), agent.end(), [&](int a, int b) {
                 return _policies[a].H(Sfrom[a]) < _policies[b].H(Sfrom[b]);
             });
+             */
             _All_node_Agentorder[_states[sid].jv] = agent;
             std::vector<Agent> pibt_agents;
             double gap = 1.0 / (agent.size() + 1);
@@ -708,7 +718,8 @@ namespace raplab{
             if (f_value[0] >= fmin[0] && f_value[0] <= epsilon[0]) {
                 long state_id = elem.second;
                 // Here we need to compute the joint vertex corresponding h value for this state_id
-                CostVec c_value = _H(_states[state_id].jv); // Compute h_value for this state_id
+                CostVec c_value = _Csize(state_id); // Compute h_value for this state_id
+                //CostVec c_value = _Cs(_states[state_id].jv); // Compute h_value for this state_id
                 _focal.insert({c_value, state_id});
             }
         }
@@ -825,6 +836,51 @@ namespace raplab{
         }
 
         outFile.close();
+    }
+
+    CostVec MPMstar::_C(const std::vector<long> &jv) {
+        CostVec out(_graph->CostDim(), 0);
+        std::vector<long> Sfrom = jv;
+        while (Sfrom != _vd) {
+            std::vector<long> Sto;
+            for (int ri = 0; ri < _nAgent; ri++) { // loop over robots
+                Sto.push_back(_policies[ri].Phi(Sfrom[ri]));
+            }
+            out[0] += (_ColCheck(Sfrom,Sto)).size();
+            Sfrom = Sto;
+        }
+        return out;
+    }
+
+    CostVec MPMstar::_Csize(long sid) {
+        CostVec out(_graph->CostDim(), 0);
+        const auto& colSet = _states[sid].colSet;
+        out[0] = colSet.size();
+        return out;
+    }
+
+    std::vector<int> MPMstar::_Sort(long sid) {
+        const auto& colSet = _states[sid].colSet;
+        const auto& jv = _states[sid].jv;
+        std::vector<long> agent(_vo.size(), 0);
+        std::vector<long> Sfrom = jv;
+        while (Sfrom != _vd) {
+            std::vector<long> Sto;
+            for (int ri = 0; ri < _nAgent; ri++) { // loop over robots
+                Sto.push_back(_policies[ri].Phi(Sfrom[ri]));
+            }
+            auto col = _ColCheck(Sfrom, Sto);
+            for (auto pair: col) {
+                agent[pair.first] += 1;
+            }
+            Sfrom = Sto;
+        }
+        std::vector<int> re(agent.size());
+        std::iota(re.begin(), re.end(), 0);
+        std::sort(re.begin(), re.end(), [&](int a, int b) {
+            return agent[a] > agent[b];
+        });
+        return re;
     }
 
     // not using anymore

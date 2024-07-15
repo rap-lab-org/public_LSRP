@@ -23,14 +23,14 @@ int main(){
 int TestMPMstar_movingai(){
     std::cout << "####### Moving ai test Begin #######" << std::endl;
     std::string MapPath = "C:/Users/David Zhou/Documents/GitHub/public_LSRP/data/maps/random-32-32-20.map";
-    for (int i = 1; i < 6; i+=1) {
+    for (int i = 1; i < 2; i+=1) {
         std::string ScenPath = R"(C:/Users/David Zhou/Documents/GitHub/public_LSRP/data/scen/random-32-32-20-scen/random-32-32-20-random-)" + std::to_string(i) + ".scen";
         raplab::Grid2d g;
         std::vector<std::vector<double>> occupancy_grid;
         raplab::LoadMap_MovingAI(MapPath, &occupancy_grid);
         g.SetOccuGridPtr(&occupancy_grid);
         double time_limit = 60;
-        for (int n = 1; n <= 10; n += 1) {
+        for (int n = 2; n <= 20; n += 1) {
             //int n = 2;
             std::vector<long> starts;
             std::vector<long> goals;

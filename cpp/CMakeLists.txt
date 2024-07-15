@@ -26,6 +26,9 @@ add_library(${PROJECT_NAME} SHARED
         source/mapf_mstar.cpp
         include/graph_io.hpp
         test/test_movingai.cpp
+        source/mapfaa_asyPibt.hpp
+        source/mapfaa_asyPibt.cpp
+        include/mapfaa_util.hpp
 )
 
 set(test_cpp_dir "test/")

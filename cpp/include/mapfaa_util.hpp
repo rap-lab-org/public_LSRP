@@ -28,12 +28,7 @@ struct TimePath
 /**
  * @brief
  */
-struct TimePathSet
-{
-  std::vector<TimePath> paths;
-};
-
-
+ typedef std::vector<TimePath> TimePathSet;
 /**
  * @brief
  */
