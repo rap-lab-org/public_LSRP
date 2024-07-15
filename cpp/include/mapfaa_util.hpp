@@ -16,12 +16,18 @@
 namespace raplab{
 
 
+/**
+ * @brief
+ */
 struct TimePath
 {
   std::vector<long> nodes;
   std::vector<double> times;
 };
 
+/**
+ * @brief
+ */
 struct TimePathSet
 {
   std::vector<TimePath> paths;
