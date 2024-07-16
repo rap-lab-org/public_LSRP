@@ -22,10 +22,10 @@
 
 namespace raplab {
 
-#define Debug_asyPibt 0
+#define Debug_asyPibt 1
 #define Makespan 0
 #define Soc 0
-
+    /*
     struct nullopt_t {
         constexpr nullopt_t(int) {}  // 构造函数用于禁止隐式转换
     };
@@ -147,10 +147,13 @@ namespace raplab {
         alignas(T) unsigned char storage[sizeof(T)];
 
     };
+     */
 
 
     class State {
     public:
+        State();
+
         State(long parent_v, long v, double parent_time, double time);
 
         bool operator==(const State &other) const;
@@ -180,6 +183,8 @@ namespace raplab {
 
     class Agent {
     public:
+        Agent();
+
         Agent(int id, long start, long goal);
 
         void set_init_priority(double priority);
@@ -188,7 +193,7 @@ namespace raplab {
 
         int get_id() const;
 
-        State get_curr() const;
+        State* get_curr() const;
 
         bool operator==(const Agent &other) const;
 
@@ -198,7 +203,7 @@ namespace raplab {
 
         double get_priority() const;
 
-        void set_curr(const State &curr);
+        void set_curr(State* &curr);
 
         void set_at_goal(bool at_goal);
 
@@ -210,7 +215,7 @@ namespace raplab {
         double priority;
         double init_pri;
         long goal;
-        State curr;
+        State* curr;
         bool at_goal;
 
 
@@ -233,7 +238,7 @@ namespace raplab {
 
         virtual std::vector<Agent *> extract_Agents(double t);
 
-        virtual std::vector<raplab::Optional<State>> get_rawSto(std::vector<raplab::Optional<State>> S_from,
+        virtual std::vector<State*> get_rawSto(std::vector<State*> S_from,
                                                              const std::vector<Agent *> &curr_agents, double t) const;
 
         virtual void update_Priority(std::vector<Agent> &agents);
@@ -241,12 +246,12 @@ namespace raplab {
         virtual double get_duration(const Agent &agent) const;
 
         virtual bool
-        check_Occupied(const Agent &agent, const long &v, const std::vector<raplab::Optional<State>> &Sto,
+        check_Occupied(const Agent &agent, const long &v, const std::vector<State*> &Sto,
                        const std::vector<long> &constrain_list, bool in_pibt) const;
 
         virtual bool check_potential_deadlock(const long &v, const Agent &ag,
-                                              const std::vector<raplab::Optional<State>> &Sfrom,
-                                              const std::vector<raplab::Optional<State>> &Sto) const;
+                                              const std::vector<State*> &Sfrom,
+                                              const std::vector<State*> &Sto) const;
 
         virtual double get_makespan();
 
@@ -257,18 +262,18 @@ namespace raplab {
         std::vector<std::vector<std::tuple<long, long, double, double>>>
         extract_policy() const;
 
-        std::tuple<double, std::unordered_map<double, std::vector<raplab::Optional<State>>>>
-        asynchronous_Pibt(const Agent &agent, std::vector<raplab::Optional<State>> &Sto,
-                          const std::vector<raplab::Optional<State>> &Sfrom, const std::vector<Agent *> &curr_agents,
+        std::tuple<double, std::unordered_map<double, std::vector<State*>>>
+        asynchronous_Pibt(const Agent &agent, std::vector<State*> &Sto,
+                          const std::vector<State*> &Sfrom, const std::vector<Agent *> &curr_agents,
                           double tmin2, double curr_t, const std::vector<long> &constrain_list,
                           bool in_pibt);
 
 
         std::vector<std::vector<std::tuple<long, long, double, double>>> solve();
 
-        virtual double re_soc() const;
+        virtual double re_soc() ;
 
-        virtual double re_makespan() const;
+        virtual double re_makespan() ;
 
         virtual CostVec GetPlanCost(long nid=-1) override ;
 
@@ -281,35 +286,17 @@ namespace raplab {
         virtual int _Solve(std::vector<long>& starts, std::vector<long>& goals, double time_limit,std::vector<double> duration);
 
     private:
-        raplab::Optional<Agent>
+        Agent*
         pi_needed(const std::vector<Agent *> &curr_agents, const Agent &agent, const long &v,
-                  const std::vector<raplab::Optional<State>> &Sfrom, const std::vector<raplab::Optional<State>> &Sto) const;
+                  const std::vector<State*> &Sfrom, const std::vector<State*> &Sto) const;
 
         void insert_policy(const std::vector<std::tuple<Agent, State>> &agent_state_list,
-                           std::unordered_map<double, std::vector<raplab::Optional<State>>> &new_policy) const;
+                           std::unordered_map<double, std::vector<State*>> &new_policy) const;
 
         void
-        merge_policy(const std::unordered_map<double, std::vector<raplab::Optional<State>>> &new_policy, double curr_t);
+        merge_policy(const std::unordered_map<double, std::vector<State*>> &new_policy, double curr_t);
 
-        void update(const std::vector<Agent *> &curr_agents, std::vector<raplab::Optional<State>> Sto);
-
-        PlannerGraph* _graph;
-        std::vector<long> _Sinit;
-        std::vector<long> _Send;
-        std::vector<double> _duration;
-        std::vector<std::unordered_map<long,int>> _dis_table;
-        std::priority_queue<double, std::vector<double>, std::greater<double>> _time_list;
-        // Set to keep track of the timestamps present in time_list
-        std::unordered_set<double> _time_set;
-
-        std::unordered_map<double, std::vector<raplab::Optional<State>>> _t_policy;
-        std::vector<Agent> _agents;
-        mutable std::vector<std::vector<raplab::Optional<State>>> _policy;
-        double _min_duration;
-        double _soc;
-        double _makespan;
-        double _time_limit;
-        std::mt19937 _rng;
+        void update(const std::vector<Agent *> &curr_agents, std::vector<State*> Sto);
 
         std::vector<std::unordered_map<long,int>> generate_distable();
 
@@ -319,17 +306,31 @@ namespace raplab {
 
         std::vector<Agent> set_agents();
 
-        std::vector<std::vector<raplab::Optional<State>>> set_initPolicy();
+        std::vector<std::vector<State*>> set_initPolicy();
 
         State generate_state(const long &v, const Agent &agent,
-                             const std::vector<raplab::Optional<State>> &Sfrom,
-                             raplab::Optional<double> tmin2) const;
+                             const std::vector<State*> &Sfrom,
+                             double* tmin2) const;
 
+        std::vector<long> _Sinit;
+        std::vector<long> _Send;
+        std::vector<double> _duration;
+        std::vector<std::unordered_map<long,int>> _dis_table;
+        std::priority_queue<double, std::vector<double>, std::greater<double>> _time_list;
+        // Set to keep track of the timestamps present in time_list
+        std::unordered_set<double> _time_set;
+
+        std::unordered_map<double, std::vector<State*>> _t_policy;
+        std::vector<Agent> _agents;
+        mutable std::vector<std::vector<State*>> _policy;
+        double _min_duration;
+        double _soc;
+        double _makespan;
+        double _time_limit;
+        std::mt19937 _rng;
+        std::unordered_map<std::string, double> _stats;
     };
-
-
 }
-
 namespace std {
     template <>
     struct hash<raplab::State> {

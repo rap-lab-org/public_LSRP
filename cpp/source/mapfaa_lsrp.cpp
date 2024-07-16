@@ -15,6 +15,8 @@ namespace raplab{
      * @param time arriving time
      */
     // lsrp: timestamp state
+    State::State() {};
+
     State::State(long parent_v, long v, double parent_time, double time)
             : p(parent_v), v(v), startT(parent_time), endT(time) {}
 
@@ -59,8 +61,10 @@ namespace raplab{
      * @param start start vertex
      * @param goal  goal vertex
      */
+    Agent::Agent() {};
     Agent::Agent(int id, long start, long goal)
-            : id(id), goal(goal), curr(start, start, 0.0, 0.0), at_goal(false), priority(0.0), init_pri(0.0) {}
+            : id(id),priority(0.0), curr(new State(start, start, 0.0, 0.0)), at_goal(false), init_pri(0.0),goal(goal) {
+    }
 
     void Agent::set_init_priority(double priority) {
         this->init_pri = priority;
@@ -79,7 +83,7 @@ namespace raplab{
         return id;
     }
 
-    State Agent::get_curr() const {
+    State* Agent::get_curr() const {
         return curr;
     }
 
@@ -100,7 +104,7 @@ namespace raplab{
         return goal;
     }
 
-    void Agent::set_curr(const State &curr) {
+    void Agent::set_curr(State* &curr) {
         this->curr = curr;
     }
 
@@ -115,6 +119,10 @@ namespace raplab{
      * @return
      */
     //Lsrp part main function
+
+    Lsrp::Lsrp() {};
+
+    Lsrp::~Lsrp() {};
 
     CostVec Lsrp::GetPlanCost(long nid) {
         CostVec out(_graph->CostDim(), 0);
@@ -137,12 +145,16 @@ namespace raplab{
 
     int
     Lsrp::_Solve(std::vector<long> &starts, std::vector<long> &goals, double time_limit, std::vector<double> duration) {
+        if(Debug_asyPibt) {std::cout<<"First layer solve arrives"<<std::endl;}
         _Sinit = starts;
         _Send = goals;
-        _duration.assign(_Sinit.size(),1);
+        _duration = duration;
         _dis_table = generate_distable();
+        if(Debug_asyPibt) {std::cout<<"Dis_table successfully generated"<<std::endl;}
         _agents = set_agents();
+        if(Debug_asyPibt) {std::cout<<"Agent set"<<std::endl;}
         _policy = set_initPolicy();
+        if(Debug_asyPibt) {std::cout<<"POlicy generated"<<std::endl;}
         _min_duration = *std::min_element(_duration.begin(), _duration.end());
         _time_limit = time_limit;
         solve();
@@ -199,8 +211,10 @@ namespace raplab{
         size_t n = _Send.size();
         double gap = 1.0 / (n + 1);
         std::vector<Agent> agents;
+        agents.reserve(_Sinit.size());
         for (size_t i = 0; i < _Sinit.size(); ++i) {
-            agents.emplace_back(i, _Sinit[i], _Send[i]);
+            Agent ai = Agent(i,_Sinit[i],_Send[i]);
+            agents.emplace_back(ai);
         }
 
         std::vector<std::pair<int, double>> tmp(_duration.size());
@@ -223,10 +237,11 @@ namespace raplab{
 // eg: [(s11, s21, s31, s41, ·······)]
 // sort agent by their duration， the bigger the duration， the higher the priority
 // also set occupation and referred time policy
-    std::vector<std::vector<raplab::Optional<State>>> Lsrp::set_initPolicy() {
-        std::vector<std::vector<raplab::Optional<State>>> policy;
-        std::vector<raplab::Optional<State>> States_init;
-        for (const auto& agent : _agents) {
+    std::vector<std::vector<State*>> Lsrp::set_initPolicy() {
+        std::vector<std::vector<State*>> policy;
+        std::vector<State*> States_init;
+        States_init.reserve(_Sinit.size());
+        for (auto& agent : _agents) {
             States_init.push_back(agent.get_curr());
         }
         policy.push_back(States_init); // 直接插入 vector<State>
@@ -260,7 +275,7 @@ namespace raplab{
     std::vector<Agent*> Lsrp::extract_Agents(double t) {
         std::vector<Agent*> return_agents;
         for (auto& agent : _agents) {
-            if (agent.get_curr().get_endT() == t) {
+            if (agent.get_curr()->get_endT() == t) {
                 return_agents.push_back(&agent);
             }
         }
@@ -271,10 +286,10 @@ namespace raplab{
 //A method that generate state tuple
 //that agent no needed to plan in this timestamp are added in
 //while those reach endT are set to be None and implemented by Lsrp later
-    std::vector<raplab::Optional<State>> Lsrp::get_rawSto(std::vector<raplab::Optional<State>> S_from,
+    std::vector<State*> Lsrp::get_rawSto(std::vector<State*> S_from,
                                                            const std::vector<Agent*>& curr_agents, double t) const {
-        std::vector<raplab::Optional<State>> re_S;
-        const std::vector<raplab::Optional<State>>* t_policy_ptr = nullptr;
+        std::vector<State*> re_S;
+        const std::vector<State*>* t_policy_ptr = nullptr;
 
         // 获取当前时间 t 对应的策略
         auto it = _t_policy.find(t);
@@ -291,7 +306,7 @@ namespace raplab{
                 if (t_policy_ptr != nullptr) {
                     re_S.push_back((*t_policy_ptr)[index]);
                 } else {
-                    re_S.push_back(raplab::nullopt);
+                    re_S.push_back(nullptr);
                 }
             } else {
                 // 否则，将 S_from[index] 添加到 re_S 中
@@ -324,12 +339,17 @@ namespace raplab{
 
 // A Method generate state
     State Lsrp::generate_state(const long& v, const Agent& agent,
-                                   const std::vector<raplab::Optional<State>>& Sfrom, raplab::Optional<double> tmin2) const {
-        const State& parent = Sfrom[agent.get_id()].value();
+                                   const std::vector<State*>& Sfrom, double* tmin2) const {
+        auto parent_ptr = Sfrom[agent.get_id()];
+        if (parent_ptr == nullptr) {
+            throw std::runtime_error("Invalid state pointer for agent.");
+        }
+
+        const State& parent = *parent_ptr;
 
         // The wait situation
         if (v == parent.get_v()) {
-            double endT = (tmin2.value() != double(-1)) ? tmin2.value() : parent.get_endT() + _min_duration;
+            double endT = (tmin2 != nullptr && *tmin2 != -1) ? *tmin2 : parent.get_endT() + _min_duration;
             return State(parent.get_v(), v, parent.get_endT(), endT);
         }
 
@@ -344,27 +364,27 @@ namespace raplab{
 //No worry edge collision， p is occupied and no swap would happened
 //Also avoid that vertex is being pibted
     bool Lsrp::check_Occupied(const Agent& agent, const long& v,
-                                  const std::vector<raplab::Optional<State>>& Sto,
+                                  const std::vector<State*>& Sto,
                                   const std::vector<long>& constrain_list, bool in_pibt) const {
         for (size_t index = 0; index < Sto.size(); ++index) {
             if (index == agent.get_id()) {
                 continue;
             }
 
-            const auto& state_opt = Sto[index];
-            if (!state_opt.has_value) {
+            auto state_opt = Sto[index];
+            if (state_opt == nullptr) {
                 continue;
             }
 
-            const State& state = state_opt.value();
-            if (v == state.get_v() || v == state.get_p()) {
+            State* state = state_opt;
+            if (v == state->get_v() || v == state->get_p()) {
                 // if the v is occupied, then bye bye
                 return true;
             }
         }
 
         if (in_pibt) {
-            if (v == agent.get_curr().get_v()) {
+            if (v == agent.get_curr()->get_v()) {
                 return true;
             }
             // you should not go to the place where it has not decided yet but should be occupied by themselves
@@ -379,50 +399,50 @@ namespace raplab{
 //A method check if the low priority deadlock situation is going to happened
 //If it is, Return True and starts the asy-PIBT process
     bool Lsrp::check_potential_deadlock(const long& v, const Agent& ag,
-                                            const std::vector<raplab::Optional<State>>& Sfrom,
-                                            const std::vector<raplab::Optional<State>>& Sto) const {
-        const State& parent = Sfrom[ag.get_id()].value();
-        if (parent.get_v() == v && !Sto[ag.get_id()].has_value) {
+                                            const std::vector<State*>& Sfrom,
+                                            const std::vector<State*>& Sto) const {
+        auto parent = Sfrom[ag.get_id()];
+        if (parent->get_v() == v && Sto[ag.get_id()] != nullptr) {
             return true;
         }
         return false;
     }
 
 //generate the ag that needed to be inheritance priority
-    raplab::Optional<Agent> Lsrp::pi_needed(const std::vector<Agent*>& curr_agents, const Agent& agent,
+    Agent* Lsrp::pi_needed(const std::vector<Agent*>& curr_agents, const Agent& agent,
                                              const long& v,
-                                             const std::vector<raplab::Optional<State>>& Sfrom,
-                                             const std::vector<raplab::Optional<State>>& Sto) const {
+                                             const std::vector<State*>& Sfrom,
+                                             const std::vector<State*>& Sto) const {
         for (const auto& ag_ptr : curr_agents) {
             if (*ag_ptr == agent) { // 解引用指针并比较
                 continue;
             }
             if (check_potential_deadlock(v, *ag_ptr, Sfrom, Sto)) { // 解引用指针传递给函数
-                return *ag_ptr; // 返回智能体对象
+                return ag_ptr; // 返回智能体对象
             }
         }
-        return raplab::nullopt;
+        return nullptr;
     }
 
 
 //Helper function
 //insert state to specific time's policy
     void Lsrp::insert_policy(const std::vector<std::tuple<Agent, State>>& agent_state_list,
-                                 std::unordered_map<double, std::vector<raplab::Optional<State>>>& new_policy) const {
+                                 std::unordered_map<double, std::vector<State*>>& new_policy) const {
         for (const auto& agent_state : agent_state_list) {
             const Agent& agent = std::get<0>(agent_state);
-            const State& state = std::get<1>(agent_state);
+            auto state = std::get<1>(agent_state);
             double t = state.get_startT();
             if (new_policy.find(t) == new_policy.end()) {
-                new_policy[t] = std::vector<raplab::Optional<State>>(_Sinit.size(), raplab::nullopt);
+                new_policy[t] = std::vector<State*>(_Sinit.size(), nullptr);
             }
-            new_policy[t][agent.get_id()] = state;
+            new_policy[t][agent.get_id()] = &state;
         }
     }
 
 // Merge successful policy with self.t_policy
 // Also insert time to the timestamp list
-    void Lsrp::merge_policy(const std::unordered_map<double, std::vector<raplab::Optional<State>>>& new_policy, double curr_t) {
+    void Lsrp::merge_policy(const std::unordered_map<double, std::vector<State*>>& new_policy, double curr_t) {
         for (const auto& [t, S_t] : new_policy) {
             auto it = _t_policy.find(t);
             if (it == _t_policy.end()) {
@@ -432,9 +452,9 @@ namespace raplab{
                     _time_set.insert(t);
                 }
             } else {
-                std::vector<raplab::Optional<State>>& policy = it->second;
+                std::vector<State*>& policy = it->second;
                 for (size_t index = 0; index < S_t.size(); ++index) {
-                    if (S_t[index].has_value) {
+                    if (S_t[index] != nullptr) {
                         if (index >= policy.size()) {
                             policy.resize(index + 1);
                         }
@@ -446,12 +466,12 @@ namespace raplab{
     }
 
 // Update all the information
-    void Lsrp::update(const std::vector<Agent*>& curr_agents, std::vector<raplab::Optional<State>> Sto) {
+    void Lsrp::update(const std::vector<Agent*>& curr_agents, std::vector<State*> Sto) {
         _policy.push_back(Sto); // 将 Sto 添加到 policy 中
 
         for (Agent* agent : curr_agents) {  // 使用指针遍历
             int id = agent->get_id();       // 通过指针访问成员函数
-            agent->set_curr(*Sto[id]);      // 更新 agent 的 curr 状态
+            agent->set_curr(Sto[id]);      // 更新 agent 的 curr 状态
 
             // Input time
             double endT = Sto[id]->get_endT();
@@ -477,8 +497,8 @@ namespace raplab{
 
         // Iterate through policy and calculate social cost
         for (size_t index = 1; index < _policy.size(); ++index) {
-            const std::vector<raplab::Optional<State>>& Q = _policy[index];
-            const std::vector<raplab::Optional<State>>& prev_Q = _policy[index - 1];
+            const std::vector<State*>& Q = _policy[index];
+            const std::vector<State*>& prev_Q = _policy[index - 1];
 
             // Assuming Q and prev_Q have the same size
             for (size_t i = 0; i < Q.size(); ++i) {
@@ -500,7 +520,7 @@ namespace raplab{
 //Return makespan cost
     double Lsrp::get_makespan() {
         // Get the last policy entry
-        const std::vector<raplab::Optional<State>>& Sfrom = _policy.back();
+        const std::vector<State*>& Sfrom = _policy.back();
 
         // Find the maximum endT in Sfrom
         double maxT = -1.0;
@@ -516,7 +536,7 @@ namespace raplab{
 //useless function no used at all just for test
     void Lsrp::add_lastStep() {
         // Get the last policy entry
-        std::vector<raplab::Optional<State>> Sfrom = _policy.back();
+        std::vector<State*> Sfrom = _policy.back();
 
         // Get the max T
         double maxT = get_makespan();
@@ -525,7 +545,7 @@ namespace raplab{
         std::vector<Agent *> max_agents = extract_Agents(maxT);
 
         // Prepare final state vector S_final
-        std::vector<raplab::Optional<State>> S_final;
+        std::vector<State*> S_final;
         for (size_t index = 0; index < _agents.size(); ++index) {
             const Agent& agent = _agents[index];
             if (std::find_if(max_agents.begin(), max_agents.end(),
@@ -534,7 +554,7 @@ namespace raplab{
             } else {
                 double startT = Sfrom[index]->get_endT();
                 long v = Sfrom[index]->get_v();
-                S_final.push_back(State(v, v, startT, maxT));
+                S_final.push_back(new State(v, v, startT, maxT));
             }
         }
 
@@ -569,9 +589,9 @@ namespace raplab{
 
 // Existing implementations...
 
-    std::tuple<double, std::unordered_map<double, std::vector<raplab::Optional<State>>>> Lsrp::asynchronous_Pibt(const Agent& agent, std::vector<raplab::Optional<State>> &Sto, const std::vector<raplab::Optional<State>>& Sfrom, const std::vector<Agent*>& curr_agents, double tmin2, double curr_t, const std::vector<long>& constrain_list, bool in_pibt) {
-        std::vector<long> C = {agent.get_curr().get_v()};
-        const auto& neighbors = _graph->GetSuccs(agent.get_curr().get_v());
+    std::tuple<double, std::unordered_map<double, std::vector<State*>>> Lsrp::asynchronous_Pibt(const Agent& agent, std::vector<State*> &Sto, const std::vector<State*>& Sfrom, const std::vector<Agent*>& curr_agents, double tmin2, double curr_t, const std::vector<long>& constrain_list, bool in_pibt) {
+        std::vector<long> C = {agent.get_curr()->get_v()};
+        const auto& neighbors = _graph->GetSuccs(agent.get_curr()->get_v());
         C.insert(C.end(), neighbors.begin(), neighbors.end());
 
         std::shuffle(C.begin(), C.end(), _rng);
@@ -585,35 +605,35 @@ namespace raplab{
             }
 
             auto ag_opt = pi_needed(curr_agents, agent, v, Sfrom, Sto);
-            if (ag_opt.has_value) {
-                const Agent& ag = ag_opt.value();
+            if (ag_opt != nullptr) {
+                auto ag = ag_opt;
 
                 std::vector<long> new_constrain_list;
                 if (in_pibt) {
                     new_constrain_list = constrain_list;
-                    new_constrain_list.push_back(agent.get_curr().get_v());
+                    new_constrain_list.push_back(agent.get_curr()->get_v());
                 } else {
                     new_constrain_list = {Sfrom[agent.get_id()]->get_v()};
                 }
 
                 double twait;
-                std::unordered_map<double, std::vector<raplab::Optional<State>>> new_policy;
-                std::tie(twait, new_policy) = asynchronous_Pibt(ag, Sto, Sfrom, curr_agents, tmin2, curr_t, new_constrain_list, true);
+                std::unordered_map<double, std::vector<State*>> new_policy;
+                std::tie(twait, new_policy) = asynchronous_Pibt(*ag, Sto, Sfrom, curr_agents, tmin2, curr_t, new_constrain_list, true);
 
                 if (twait == -1) {
                     if (in_pibt) {
-                        return std::make_tuple(-1, std::unordered_map<double, std::vector<raplab::Optional<State>>>());
+                        return std::make_tuple(-1, std::unordered_map<double, std::vector<State*>>());
                     } else {
                         continue;
                     }
                 }
 
-                const State& parent = Sfrom[agent.get_id()].value();
-                State next_state(parent.get_v(), parent.get_v(), parent.get_endT(), twait);
-                Sto[agent.get_id()] = next_state;
+                auto parent = Sfrom[agent.get_id()];
+                State next_state(parent->get_v(), parent->get_v(), parent->get_endT(), twait);
+                Sto[agent.get_id()] = &next_state;
 
                 double tmove = twait + get_duration(agent);
-                State next_next_state(parent.get_v(), v, twait, tmove);
+                State next_next_state(parent->get_v(), v, twait, tmove);
 
                 std::vector<std::tuple<Agent, State>> agent_state_list;
                 agent_state_list.push_back({agent, next_state});
@@ -625,38 +645,39 @@ namespace raplab{
                     return std::make_tuple(tmove, new_policy);
                 } else {
                     merge_policy(new_policy, curr_t);
-                    return std::make_tuple(true, std::unordered_map<double, std::vector<raplab::Optional<State>>>());
+                    return std::make_tuple(true, std::unordered_map<double, std::vector<State*>>());
                 }
             } else {
                 if (in_pibt) {
-                    const State& parent = Sfrom[agent.get_id()].value();
-                    double tmove = parent.get_endT() + get_duration(agent);
-                    State next_state(parent.get_v(), v, parent.get_endT(), tmove);
-                    Sto[agent.get_id()] = next_state;
+                    auto parent = Sfrom[agent.get_id()];
+                    double tmove = parent->get_endT() + get_duration(agent);
+                    State next_state(parent->get_v(), v, parent->get_endT(), tmove);
+                    Sto[agent.get_id()] = &next_state;
 
-                    std::unordered_map<double, std::vector<raplab::Optional<State>>> new_policy;
+                    std::unordered_map<double, std::vector<State*>> new_policy;
                     std::vector<std::tuple<Agent, State>> agent_state_list;
                     agent_state_list.push_back({agent, next_state});
                     insert_policy(agent_state_list, new_policy);
 
                     return std::make_tuple(tmove, new_policy);
                 } else {
-                    State next_state = generate_state(v, agent, Sfrom, tmin2);
-                    Sto[agent.get_id()] = next_state;
-                    return std::make_tuple(-1, std::unordered_map<double, std::vector<raplab::Optional<State>>>());
+                    State next_state = generate_state(v, agent, Sfrom, &tmin2);
+                    Sto[agent.get_id()] = &next_state;
+                    return std::make_tuple(-1, std::unordered_map<double, std::vector<State*>>());
                 }
             }
         }
 
         if (in_pibt) {
-            return std::make_tuple(-1, std::unordered_map<double, std::vector<raplab::Optional<State>>>());
+            return std::make_tuple(-1, std::unordered_map<double, std::vector<State*>>());
         } else {
-            return std::make_tuple(true, std::unordered_map<double, std::vector<raplab::Optional<State>>>());
+            return std::make_tuple(true, std::unordered_map<double, std::vector<State*>>());
         }
     }
 
 
     std::vector<std::vector<std::tuple<long, long, double, double>>> Lsrp::solve() {
+        if(Debug_asyPibt) {std::cout<<"Second layer solve arrives"<<std::endl;}
         _time_list.push(0.0);  // start time: 0 for all
         _time_set.insert(0.0);
 
@@ -687,6 +708,7 @@ namespace raplab{
 
 
             if (reach_Goal()) {
+                if(Debug_asyPibt){std::cout<<"Solution found"<<std::endl;}
                 add_lastStep();
                 get_makespan();
                 get_Soc();
@@ -697,7 +719,7 @@ namespace raplab{
             auto curr_agents = extract_Agents(t);
 
             // generate raw Sto from Sfrom and curr_agents
-            std::vector<raplab::Optional<State>> Sto = get_rawSto(_policy.back(), curr_agents, t);
+            std::vector<State*> Sto = get_rawSto(_policy.back(), curr_agents, t);
 
             // update priority
             update_Priority(_agents);
@@ -710,7 +732,7 @@ namespace raplab{
 
             // Generate path
             for (auto& agent : curr_agents) {
-                if (!Sto[agent->get_id()].has_value) {
+                if (Sto[agent->get_id()] == nullptr) {
                     asynchronous_Pibt(*agent, Sto, Sfrom, curr_agents, t2, t, {}, false);
                 }
             }
@@ -720,12 +742,20 @@ namespace raplab{
         }
     }
 
-    double Lsrp::re_makespan() const {
+    double Lsrp::re_makespan() {
         return _makespan;
     }
 
-    double Lsrp::re_soc() const {
+    double Lsrp::re_soc() {
         return _soc;
+    }
+
+    TimePathSet Lsrp::GetPlan(long nid) {
+        return raplab::TimePathSet();
+    }
+
+    std::unordered_map<std::string, double> Lsrp::GetStats() {
+        return _stats;
     }
 
 

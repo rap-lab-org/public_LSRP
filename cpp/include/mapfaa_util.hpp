@@ -33,15 +33,19 @@ struct TimePath
  * @brief
  */
 class MAPFAAPlanner {
-  /**
-   * @brief
-   */
-  MAPFAAPlanner() ;
-  /**
-   * @brief
-   */
-  virtual ~MAPFAAPlanner() ;
+public:
+public:
+/**
+ *
+ */
+    virtual void SetGraphPtr(PlannerGraph* g) ;
 
+/**
+ * @brief
+ */
+    MAPFAAPlanner() ;
+
+    virtual ~MAPFAAPlanner() ;
     /**
      * @brief
      */
@@ -59,12 +63,13 @@ class MAPFAAPlanner {
    */
   virtual std::unordered_map<std::string, double> GetStats() = 0;
 
-public:
-/**
- *
- */
-virtual void SetGraphPtr(PlannerGraph* g) ;
+protected:
+    PlannerGraph* _graph;
+    std::vector<long> _starts;
+    std::vector<long> _goals;
 };
+
+
 
 } // end namespace raplab
 

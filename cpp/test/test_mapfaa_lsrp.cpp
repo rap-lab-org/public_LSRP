@@ -61,4 +61,5 @@ int TestLsrp(){
         std::cout << " path = " << path << std::endl;
     }*/
     std::cout << "####### test_LSRP.cpp - TestLSRP() End #######" << std::endl;
+    return 0;
 }

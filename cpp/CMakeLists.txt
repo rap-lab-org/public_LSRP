@@ -4,7 +4,7 @@ project(cppraplab)
 # find_package(Boost REQUIRED)
 find_package(Threads REQUIRED)
 
-set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS "-std=c++20 ${CMAKE_CXX_FLAGS}")
 
 file(GLOB_RECURSE ALL_HDRS "include/*.hpp")
 file(GLOB_RECURSE ALL_SRCS "source/*.cpp")
@@ -19,17 +19,12 @@ include_directories(DIRECTORY
 
 add_library(${PROJECT_NAME} SHARED
   ${ALL_SRCS}
-        source/mapf_mpmstar.cpp
-        source/mapf_mpmstar_v2.cpp
-        source/mapf_pibt.cpp
-        include/mapf_pibt.hpp
-        source/mapf_mstar.cpp
-        include/graph_io.hpp
-        test/test_movingai.cpp
+        include/mapfaa_util.hpp
         include/mapfaa_lsrp.hpp
         source/mapfaa_lsrp.cpp
         include/mapfaa_util.hpp
         test/test_mapfaa_lsrp.cpp
+        source/mapfaa_util.cpp
 )
 
 set(test_cpp_dir "test/")
