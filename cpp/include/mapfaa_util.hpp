@@ -41,13 +41,10 @@ class MAPFAAPlanner {
    * @brief
    */
   virtual ~MAPFAAPlanner() ;
-  /**
-   *
-   */
-  virtual void SetGraphPtr(PlannerGraph* g) ;
-  /**
-   * @brief
-   */
+
+    /**
+     * @brief
+     */
   virtual int Solve(std::vector<long>& starts, std::vector<long>& goals, double time_limit, double eps) = 0;
   /**
    * @brief
@@ -62,6 +59,11 @@ class MAPFAAPlanner {
    */
   virtual std::unordered_map<std::string, double> GetStats() = 0;
 
+public:
+/**
+ *
+ */
+virtual void SetGraphPtr(PlannerGraph* g) ;
 };
 
 } // end namespace raplab
