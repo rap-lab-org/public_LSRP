@@ -40,7 +40,7 @@ int TestLsrp(){
     occupancy_grid[0][0] = 1;
     occupancy_grid[0][1] = 1;
     occupancy_grid[0][2] = 1;
-    occupancy_grid[1][0] = 1;
+    //occupancy_grid[1][0] = 1;
     g.SetOccuGridPtr(&occupancy_grid);
     // not using it now
     double time_limit = 300;

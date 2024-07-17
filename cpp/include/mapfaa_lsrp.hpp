@@ -25,6 +25,8 @@ namespace raplab {
 #define Debug_asyPibt 1
 #define Makespan 0
 #define Soc 0
+#define Distance_sort 1
+#define Duration_sort 1
     /*
     struct nullopt_t {
         constexpr nullopt_t(int) {}  // 构造函数用于禁止隐式转换
@@ -149,8 +151,7 @@ namespace raplab {
     };
      */
 
-
-    class State {
+    struct State {
     public:
         State();
 
@@ -180,8 +181,14 @@ namespace raplab {
 
     };
 
+    struct StateHash {
+        std::size_t operator()(const State& s) const {
+            return s.hash();
+        }
+    };
 
-    class Agent {
+
+    struct Agent {
     public:
         Agent();
 
@@ -209,13 +216,13 @@ namespace raplab {
 
         long get_goal() const;
 
+        State* curr;
 
     private:
         int id;
         double priority;
         double init_pri;
         long goal;
-        State* curr;
         bool at_goal;
 
 
@@ -241,7 +248,7 @@ namespace raplab {
         virtual std::vector<State*> get_rawSto(std::vector<State*> S_from,
                                                              const std::vector<Agent *> &curr_agents, double t) const;
 
-        virtual void update_Priority(std::vector<Agent> &agents);
+        virtual void update_Priority();
 
         virtual double get_duration(const Agent &agent) const;
 
@@ -290,7 +297,7 @@ namespace raplab {
         pi_needed(const std::vector<Agent *> &curr_agents, const Agent &agent, const long &v,
                   const std::vector<State*> &Sfrom, const std::vector<State*> &Sto) const;
 
-        void insert_policy(const std::vector<std::tuple<Agent, State>> &agent_state_list,
+        void insert_policy(const std::vector<std::tuple<Agent, State*>> &agent_state_list,
                            std::unordered_map<double, std::vector<State*>> &new_policy) const;
 
         void
@@ -304,7 +311,7 @@ namespace raplab {
 
         int get_h(const Agent &agent, const long &coord);
 
-        std::vector<Agent> set_agents();
+        void set_agents();
 
         std::vector<std::vector<State*>> set_initPolicy();
 
@@ -321,7 +328,7 @@ namespace raplab {
         std::unordered_set<double> _time_set;
 
         std::unordered_map<double, std::vector<State*>> _t_policy;
-        std::vector<Agent> _agents;
+        std::vector<Agent*> _agents;
         mutable std::vector<std::vector<State*>> _policy;
         double _min_duration;
         double _soc;
@@ -331,13 +338,5 @@ namespace raplab {
         std::unordered_map<std::string, double> _stats;
     };
 }
-namespace std {
-    template <>
-    struct hash<raplab::State> {
-        std::size_t operator()(const raplab::State& s) const {
-            return s.hash();
-        }
-    };
 
-}
 #endif //CPPRAPLAB_MAPFAA_LSRP_HPP

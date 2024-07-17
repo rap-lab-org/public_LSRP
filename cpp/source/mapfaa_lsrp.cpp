@@ -151,7 +151,7 @@ namespace raplab{
         _duration = duration;
         _dis_table = generate_distable();
         if(Debug_asyPibt) {std::cout<<"Dis_table successfully generated"<<std::endl;}
-        _agents = set_agents();
+        set_agents();
         if(Debug_asyPibt) {std::cout<<"Agent set"<<std::endl;}
         _policy = set_initPolicy();
         if(Debug_asyPibt) {std::cout<<"POlicy generated"<<std::endl;}
@@ -207,19 +207,24 @@ namespace raplab{
 //Set up initial priority based on decreasing order of their duration
 //        set a list of agents class, contains a numbers of agents
 //        And set up initial priority by given a unique value in the interval between 0 - 1
-    std::vector<Agent> Lsrp::set_agents() {
+    void Lsrp::set_agents() {
         size_t n = _Send.size();
         double gap = 1.0 / (n + 1);
-        std::vector<Agent> agents;
-        agents.reserve(_Sinit.size());
-        for (size_t i = 0; i < _Sinit.size(); ++i) {
-            Agent ai = Agent(i,_Sinit[i],_Send[i]);
-            agents.emplace_back(ai);
+        for (int i = 0; i < _Sinit.size(); ++i) {
+            _agents.push_back(new Agent(static_cast<int>(i), _Sinit[i], _Send[i]));
         }
 
         std::vector<std::pair<int, double>> tmp(_duration.size());
-        for (size_t i = 0; i < _duration.size(); ++i) {
-            tmp[i] = {i, _duration[i]};
+        // sort by duration
+        if (Duration_sort) {
+            for (size_t i = 0; i < _duration.size(); ++i) {
+                tmp[i] = {i, _duration[i]};
+            }
+        } else {
+            // sort by distance
+            for (size_t i = 0; i < _duration.size(); ++i) {
+                tmp[i] = {i, double(_dis_table[i][_Sinit[i]])};
+            }
         }
 
         std::sort(tmp.begin(), tmp.end(), [](const std::pair<int, double>& a, const std::pair<int, double>& b) {
@@ -227,10 +232,8 @@ namespace raplab{
         });
 
         for (size_t index = 0; index < tmp.size(); ++index) {
-            agents[tmp[index].first].set_init_priority(index * gap);
+            _agents[tmp[index].first]->set_init_priority(index * gap);
         }
-
-        return agents;
     }
 
 // A method set initial states
@@ -241,8 +244,8 @@ namespace raplab{
         std::vector<std::vector<State*>> policy;
         std::vector<State*> States_init;
         States_init.reserve(_Sinit.size());
-        for (auto& agent : _agents) {
-            States_init.push_back(agent.get_curr());
+        for (int i = 0; i< _agents.size(); i++) {
+            States_init.push_back(_agents[i]->curr);
         }
         policy.push_back(States_init); // 直接插入 vector<State>
         return policy;
@@ -251,7 +254,7 @@ namespace raplab{
 // Check if all agents reach goal
     bool Lsrp::reach_Goal() const {
         for (const auto& agent : _agents) {
-            if (!agent.is_at_goal()) {
+            if (!agent->is_at_goal()) {
                 return false;
             }
         }
@@ -274,9 +277,9 @@ namespace raplab{
 // The filter is based on the given t and extracts agent whose curr state with arriving time at t
     std::vector<Agent*> Lsrp::extract_Agents(double t) {
         std::vector<Agent*> return_agents;
-        for (auto& agent : _agents) {
-            if (agent.get_curr()->get_endT() == t) {
-                return_agents.push_back(&agent);
+        for (int i = 0; i <  _agents.size(); i++) {
+            if (_agents[i]->get_curr()->get_endT() == t) {
+                return_agents.push_back(_agents[i]);
             }
         }
         return return_agents;
@@ -300,7 +303,7 @@ namespace raplab{
         // 遍历 S_from
         for (size_t index = 0; index < S_from.size(); ++index) {
             // 检查 agents[index] 是否在 curr_agents 中
-            auto agent_ptr = &_agents[index];
+            Agent* agent_ptr = _agents[index];
             if (std::find(curr_agents.begin(), curr_agents.end(), agent_ptr) != curr_agents.end()) {
                 // 如果 t_policy_ptr 不是 nullptr，则将 t_policy_ptr[index] 添加到 re_S 中
                 if (t_policy_ptr != nullptr) {
@@ -322,12 +325,12 @@ namespace raplab{
 
 //Update the priority of each agent, even though some of their agent still at their last moving state
 //There are three versions of it. Referred to the details from following content.
-    void Lsrp::update_Priority(std::vector<Agent>& agents) {
-        for (Agent& agent : agents) {
-            if (agent.is_at_goal()) {
-                agent.set_priority(agent.get_init_priority());
+    void Lsrp::update_Priority() {
+        for (int i = 0; i <  _agents.size(); i++) {
+            if (_agents[i]->is_at_goal()) {
+                _agents[i]->set_priority(_agents[i]->get_init_priority());
             } else {
-                agent.set_priority(agent.get_priority() + 1);
+                _agents[i]->set_priority(_agents[i]->get_priority() + 1);
             }
         }
     }
@@ -402,7 +405,7 @@ namespace raplab{
                                             const std::vector<State*>& Sfrom,
                                             const std::vector<State*>& Sto) const {
         auto parent = Sfrom[ag.get_id()];
-        if (parent->get_v() == v && Sto[ag.get_id()] != nullptr) {
+        if (parent->get_v() == v && Sto[ag.get_id()] == nullptr) {
             return true;
         }
         return false;
@@ -427,16 +430,16 @@ namespace raplab{
 
 //Helper function
 //insert state to specific time's policy
-    void Lsrp::insert_policy(const std::vector<std::tuple<Agent, State>>& agent_state_list,
+    void Lsrp::insert_policy(const std::vector<std::tuple<Agent, State*>>& agent_state_list,
                                  std::unordered_map<double, std::vector<State*>>& new_policy) const {
         for (const auto& agent_state : agent_state_list) {
             const Agent& agent = std::get<0>(agent_state);
             auto state = std::get<1>(agent_state);
-            double t = state.get_startT();
+            double t = state->get_startT();
             if (new_policy.find(t) == new_policy.end()) {
                 new_policy[t] = std::vector<State*>(_Sinit.size(), nullptr);
             }
-            new_policy[t][agent.get_id()] = &state;
+            new_policy[t][agent.get_id()] = state;
         }
     }
 
@@ -487,6 +490,13 @@ namespace raplab{
                 // Some agents might leave their goal point to make space for others
                 agent->set_at_goal(false);
             }
+        }
+
+        if (Debug_asyPibt) {
+            for (int i = 0; i < Sto.size(); i++) {
+                std::cout<<Sto[i]->get_v()<<" ";
+            }
+            std::cout<<std::endl;
         }
     }
 
@@ -547,9 +557,9 @@ namespace raplab{
         // Prepare final state vector S_final
         std::vector<State*> S_final;
         for (size_t index = 0; index < _agents.size(); ++index) {
-            const Agent& agent = _agents[index];
+            Agent *agent = _agents[index];
             if (std::find_if(max_agents.begin(), max_agents.end(),
-                             [&agent](Agent* a) { return *a == agent; }) != max_agents.end()) {
+                             [&agent](Agent* a) { return a == agent; }) != max_agents.end()) {
                 S_final.push_back(Sfrom[index]);
             } else {
                 double startT = Sfrom[index]->get_endT();
@@ -629,13 +639,13 @@ namespace raplab{
                 }
 
                 auto parent = Sfrom[agent.get_id()];
-                State next_state(parent->get_v(), parent->get_v(), parent->get_endT(), twait);
-                Sto[agent.get_id()] = &next_state;
+                State* next_state = new State(parent->get_v(), parent->get_v(), parent->get_endT(), twait);
+                Sto[agent.get_id()] = next_state;
 
                 double tmove = twait + get_duration(agent);
-                State next_next_state(parent->get_v(), v, twait, tmove);
+                State* next_next_state = new State(parent->get_v(), v, twait, tmove);
 
-                std::vector<std::tuple<Agent, State>> agent_state_list;
+                std::vector<std::tuple<Agent, State*>> agent_state_list;
                 agent_state_list.push_back({agent, next_state});
                 agent_state_list.push_back({agent, next_next_state});
 
@@ -651,18 +661,18 @@ namespace raplab{
                 if (in_pibt) {
                     auto parent = Sfrom[agent.get_id()];
                     double tmove = parent->get_endT() + get_duration(agent);
-                    State next_state(parent->get_v(), v, parent->get_endT(), tmove);
-                    Sto[agent.get_id()] = &next_state;
+                    State* next_state = new State(parent->get_v(), v, parent->get_endT(), tmove);
+                    Sto[agent.get_id()] = next_state;
 
                     std::unordered_map<double, std::vector<State*>> new_policy;
-                    std::vector<std::tuple<Agent, State>> agent_state_list;
+                    std::vector<std::tuple<Agent, State*>> agent_state_list;
                     agent_state_list.push_back({agent, next_state});
                     insert_policy(agent_state_list, new_policy);
 
                     return std::make_tuple(tmove, new_policy);
                 } else {
-                    State next_state = generate_state(v, agent, Sfrom, &tmin2);
-                    Sto[agent.get_id()] = &next_state;
+                    State* next_state = new State(generate_state(v, agent, Sfrom, &tmin2));
+                    Sto[agent.get_id()] = next_state;
                     return std::make_tuple(-1, std::unordered_map<double, std::vector<State*>>());
                 }
             }
@@ -684,8 +694,9 @@ namespace raplab{
         // Set a timeout limit of 30 seconds
         std::chrono::seconds timeout_limit(30);
         auto start_time = std::chrono::steady_clock::now();
-
+        if(Debug_asyPibt){std::cout<<"loop begin"<<std::endl;}
         while (true) {
+            /* Todo  unindex the time limit before we finally put in use
             // time limit check
             auto current_time = std::chrono::steady_clock::now();
             auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(current_time - start_time);
@@ -695,6 +706,7 @@ namespace raplab{
                 // For demonstration, returning an empty policy
                 return {};
             }
+             */
 
 
             // get the current t
@@ -722,7 +734,7 @@ namespace raplab{
             std::vector<State*> Sto = get_rawSto(_policy.back(), curr_agents, t);
 
             // update priority
-            update_Priority(_agents);
+            update_Priority();
 
             // Sort the agents by their priority
             std::sort(curr_agents.begin(), curr_agents.end(), [](const Agent* a, const Agent* b) {
