@@ -624,7 +624,7 @@ namespace raplab{
                         const std::vector<Agent *> &curr_agents, double tmin2, double curr_t,
                         const std::vector<long> &constrain_list) {
         // the first part almost the same as aynchronous pibt
-        std::vector<long> C = {agent.get_curr()->get_v()};
+        std::vector<long> C;
         const auto& neighbors = _graph->GetSuccs(agent.get_curr()->get_v());
         C.insert(C.end(), neighbors.begin(), neighbors.end());
 
