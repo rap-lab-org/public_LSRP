@@ -269,12 +269,15 @@ namespace raplab {
         std::vector<std::vector<std::tuple<long, long, double, double>>>
         extract_policy() const;
 
+
+        /* integration of pibt and push_required and push_possible
+        // not using anymore
         std::tuple<double, std::unordered_map<double, std::vector<State*>>>
         asynchronous_Pibt(const Agent &agent, std::vector<State*> &Sto,
                           const std::vector<State*> &Sfrom, const std::vector<Agent *> &curr_agents,
                           double tmin2, double curr_t, const std::vector<long> &constrain_list,
                           bool in_pibt);
-
+        */
 
         std::vector<std::vector<std::tuple<long, long, double, double>>> solve();
 
@@ -292,10 +295,20 @@ namespace raplab {
 
         virtual int _Solve(std::vector<long>& starts, std::vector<long>& goals, double time_limit,std::vector<double> duration);
 
+        virtual std::tuple<double, std::unordered_map<double, std::vector<State*>>> push_possible
+                (const Agent &agent, std::vector<State*> &Sto,
+                 const std::vector<State*> &Sfrom, const std::vector<Agent *> &curr_agents,
+                 double tmin2, double curr_t, const std::vector<long> &constrain_list);
+
+        virtual Agent*
+        push_required(const std::vector<Agent *> &curr_agents, const Agent &agent, const long &v,
+                      const std::vector<State*> &Sfrom, const std::vector<State*> &Sto) const;
+
+        virtual int asy_pibt(const Agent &agent, std::vector<State*> &Sto,
+                             const std::vector<State*> &Sfrom, const std::vector<Agent *> &curr_agents,
+                             double tmin2, double curr_t);
+
     private:
-        Agent*
-        pi_needed(const std::vector<Agent *> &curr_agents, const Agent &agent, const long &v,
-                  const std::vector<State*> &Sfrom, const std::vector<State*> &Sto) const;
 
         void insert_policy(const std::vector<std::tuple<Agent, State*>> &agent_state_list,
                            std::unordered_map<double, std::vector<State*>> &new_policy) const;

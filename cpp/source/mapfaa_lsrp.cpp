@@ -368,7 +368,7 @@ namespace raplab{
 //Also avoid that vertex is being pibted
     bool Lsrp::check_Occupied(const Agent& agent, const long& v,
                                   const std::vector<State*>& Sto,
-                                  const std::vector<long>& constrain_list, bool in_pibt) const {
+                                  const std::vector<long>& constrain_list, bool in_push_possible) const {
         for (size_t index = 0; index < Sto.size(); ++index) {
             if (index == agent.get_id()) {
                 continue;
@@ -386,7 +386,7 @@ namespace raplab{
             }
         }
 
-        if (in_pibt) {
+        if (in_push_possible) {
             if (v == agent.get_curr()->get_v()) {
                 return true;
             }
@@ -412,7 +412,7 @@ namespace raplab{
     }
 
 //generate the ag that needed to be inheritance priority
-    Agent* Lsrp::pi_needed(const std::vector<Agent*>& curr_agents, const Agent& agent,
+    Agent* Lsrp::push_required(const std::vector<Agent*>& curr_agents, const Agent& agent,
                                              const long& v,
                                              const std::vector<State*>& Sfrom,
                                              const std::vector<State*>& Sto) const {
@@ -597,8 +597,207 @@ namespace raplab{
     }
 
 
-// Existing implementations...
+    std::tuple<double, std::unordered_map<double, std::vector<State *>>>
+    Lsrp::push_possible(const Agent &agent, std::vector<State *> &Sto, const std::vector<State *> &Sfrom,
+                        const std::vector<Agent *> &curr_agents, double tmin2, double curr_t,
+                        const std::vector<long> &constrain_list) {
+        // the first part almost the same as aynchronous pibt
+        std::vector<long> C = {agent.get_curr()->get_v()};
+        const auto& neighbors = _graph->GetSuccs(agent.get_curr()->get_v());
+        C.insert(C.end(), neighbors.begin(), neighbors.end());
 
+        std::shuffle(C.begin(), C.end(), _rng);
+        std::sort(C.begin(), C.end(), [&](const long& coord1, const long& coord2) {
+            return get_h(agent, coord1) < get_h(agent, coord2);
+        });
+        for (const auto& v : C) {
+            if (check_Occupied(agent, v, Sto, constrain_list, true)) {
+                continue;
+            }
+            auto ag_opt = push_required(curr_agents, agent, v, Sfrom, Sto);
+            if (ag_opt != nullptr) {
+                auto ag = ag_opt;
+
+                std::vector<long> new_constrain_list;
+                new_constrain_list = constrain_list;
+                new_constrain_list.push_back(agent.get_curr()->get_v());
+
+                double twait;
+                std::unordered_map<double, std::vector<State*>> new_policy;
+                std::tie(twait, new_policy) = push_possible(*ag, Sto, Sfrom, curr_agents, tmin2, curr_t, new_constrain_list);
+
+                if (twait == -1) {
+                    // which means not pibt _possible  stop recursive detection
+                    return std::make_tuple(-1, std::unordered_map<double, std::vector<State*>>());
+                }
+
+                auto parent = Sfrom[agent.get_id()];
+                State* next_state = new State(parent->get_v(), parent->get_v(), parent->get_endT(), twait);
+                Sto[agent.get_id()] = next_state;
+                double tmove = twait + get_duration(agent);
+                State* next_next_state = new State(parent->get_v(), v, twait, tmove);
+                std::vector<std::tuple<Agent, State*>> agent_state_list;
+                agent_state_list.push_back({agent, next_state});
+                agent_state_list.push_back({agent, next_next_state});
+                insert_policy(agent_state_list, new_policy);
+                return std::make_tuple(tmove, new_policy);
+            } else {
+                    auto parent = Sfrom[agent.get_id()];
+                    double tmove = parent->get_endT() + get_duration(agent);
+                    State* next_state = new State(parent->get_v(), v, parent->get_endT(), tmove);
+                    Sto[agent.get_id()] = next_state;
+                    // directly insert next state because this must be the final step of push_possible
+                    std::unordered_map<double, std::vector<State*>> new_policy;
+                    std::vector<std::tuple<Agent, State*>> agent_state_list;
+                    agent_state_list.push_back({agent, next_state});
+                    insert_policy(agent_state_list, new_policy);
+                    return std::make_tuple(tmove, new_policy);
+            }
+        }
+        //which means no push_possible  stop
+        return std::make_tuple(-1, std::unordered_map<double, std::vector<State*>>());
+    }
+
+    int Lsrp::asy_pibt(const Agent &agent, std::vector<State *> &Sto, const std::vector<State *> &Sfrom,
+                       const std::vector<Agent *> &curr_agents, double tmin2, double curr_t) {
+        //abandoned version   The integration of push_required_possible and  pibt
+        std::vector<long> C = {agent.get_curr()->get_v()};
+        const auto& neighbors = _graph->GetSuccs(agent.get_curr()->get_v());
+        C.insert(C.end(), neighbors.begin(), neighbors.end());
+
+        std::shuffle(C.begin(), C.end(), _rng);
+        std::sort(C.begin(), C.end(), [&](const long& coord1, const long& coord2) {
+            return get_h(agent, coord1) < get_h(agent, coord2);
+        });
+
+        for (const auto& v : C) {
+            if (check_Occupied(agent, v, Sto, {}, false)) {
+                continue;
+            }
+
+            auto ag_opt = push_required(curr_agents, agent, v, Sfrom, Sto);
+            if (ag_opt != nullptr) {
+                auto ag = ag_opt;
+
+                std::vector<long> new_constrain_list;
+                new_constrain_list = {Sfrom[agent.get_id()]->get_v()};
+
+                double twait;
+                std::unordered_map<double, std::vector<State*>> new_policy;
+                std::tie(twait, new_policy) = push_possible(*ag, Sto, Sfrom, curr_agents, tmin2, curr_t, new_constrain_list);
+                if (twait == -1) {
+                    // not push_possible  we go with
+                    continue;
+                }
+
+                auto parent = Sfrom[agent.get_id()];
+                State* next_state = new State(parent->get_v(), parent->get_v(), parent->get_endT(), twait);
+                Sto[agent.get_id()] = next_state;
+                // push possible so we wait here
+                double tmove = twait + get_duration(agent);
+                State* next_next_state = new State(parent->get_v(), v, twait, tmove);
+                // at next timestamp, go to the push_required agent's place
+                std::vector<std::tuple<Agent, State*>> agent_state_list;
+                agent_state_list.push_back({agent, next_state});
+                agent_state_list.push_back({agent, next_next_state});
+                insert_policy(agent_state_list, new_policy);
+                merge_policy(new_policy, curr_t);
+                return 1;
+            } else {
+                State* next_state = new State(generate_state(v, agent, Sfrom, &tmin2));
+                Sto[agent.get_id()] = next_state;
+                return 1;
+            }
+        }
+        // won't arrive here, since no agent will pre occupied another agents at current place
+        return 0;
+    }
+
+    std::vector<std::vector<std::tuple<long, long, double, double>>> Lsrp::solve() {
+        if(Debug_asyPibt) {std::cout<<"Second layer solve arrives"<<std::endl;}
+        _time_list.push(0.0);  // start time: 0 for all
+        _time_set.insert(0.0);
+
+        // Set a timeout limit of 30 seconds
+        std::chrono::seconds timeout_limit(30);
+        auto start_time = std::chrono::steady_clock::now();
+        if(Debug_asyPibt){std::cout<<"loop begin"<<std::endl;}
+        while (true) {
+            /* Todo  unindex the time limit before we finally put in use
+            // time limit check
+            auto current_time = std::chrono::steady_clock::now();
+            auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(current_time - start_time);
+            if (elapsed_time > timeout_limit) {
+                //std::cerr << "Timeout limit exceeded (30 seconds). Aborting.\n";
+                // Handle timeout failure, return an appropriate failure state or throw an exception
+                // For demonstration, returning an empty policy
+                return {};
+            }
+             */
+
+
+            // get the current t
+            double t = _time_list.top();
+            _time_list.pop();
+            _time_set.erase(t);
+
+            // get the next t
+            double t2 = get_tmin2();
+            const auto& Sfrom = _policy.back();
+
+
+            if (reach_Goal()) {
+                if(Debug_asyPibt){std::cout<<"Solution found"<<std::endl;}
+                add_lastStep();
+                get_makespan();
+                get_Soc();
+                return extract_policy();
+            }
+
+            // extract the agents who should move in this planning loop
+            auto curr_agents = extract_Agents(t);
+
+            // generate raw Sto from Sfrom and curr_agents
+            std::vector<State*> Sto = get_rawSto(_policy.back(), curr_agents, t);
+
+            // update priority
+            update_Priority();
+
+            // Sort the agents by their priority
+            std::sort(curr_agents.begin(), curr_agents.end(), [](const Agent* a, const Agent* b) {
+                return a->get_priority() > b->get_priority();
+            });
+
+
+            // Generate path
+            for (auto& agent : curr_agents) {
+                if (Sto[agent->get_id()] == nullptr) {
+                    asy_pibt(*agent, Sto, Sfrom, curr_agents, t2, t);
+                }
+            }
+
+            // 1.update time list, 2.set agents curr, 3.add Sto to policy
+            update(curr_agents, Sto);
+        }
+    }
+
+    double Lsrp::re_makespan() {
+        return _makespan;
+    }
+
+    double Lsrp::re_soc() {
+        return _soc;
+    }
+
+    TimePathSet Lsrp::GetPlan(long nid) {
+        return raplab::TimePathSet();
+    }
+
+    std::unordered_map<std::string, double> Lsrp::GetStats() {
+        return _stats;
+    }
+
+    /* abandoned version   The integration of push_required_possible and  pibt
     std::tuple<double, std::unordered_map<double, std::vector<State*>>> Lsrp::asynchronous_Pibt(const Agent& agent, std::vector<State*> &Sto, const std::vector<State*>& Sfrom, const std::vector<Agent*>& curr_agents, double tmin2, double curr_t, const std::vector<long>& constrain_list, bool in_pibt) {
         std::vector<long> C = {agent.get_curr()->get_v()};
         const auto& neighbors = _graph->GetSuccs(agent.get_curr()->get_v());
@@ -614,7 +813,7 @@ namespace raplab{
                 continue;
             }
 
-            auto ag_opt = pi_needed(curr_agents, agent, v, Sfrom, Sto);
+            auto ag_opt = push_required(curr_agents, agent, v, Sfrom, Sto);
             if (ag_opt != nullptr) {
                 auto ag = ag_opt;
 
@@ -684,91 +883,6 @@ namespace raplab{
             return std::make_tuple(true, std::unordered_map<double, std::vector<State*>>());
         }
     }
-
-
-    std::vector<std::vector<std::tuple<long, long, double, double>>> Lsrp::solve() {
-        if(Debug_asyPibt) {std::cout<<"Second layer solve arrives"<<std::endl;}
-        _time_list.push(0.0);  // start time: 0 for all
-        _time_set.insert(0.0);
-
-        // Set a timeout limit of 30 seconds
-        std::chrono::seconds timeout_limit(30);
-        auto start_time = std::chrono::steady_clock::now();
-        if(Debug_asyPibt){std::cout<<"loop begin"<<std::endl;}
-        while (true) {
-            /* Todo  unindex the time limit before we finally put in use
-            // time limit check
-            auto current_time = std::chrono::steady_clock::now();
-            auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(current_time - start_time);
-            if (elapsed_time > timeout_limit) {
-                //std::cerr << "Timeout limit exceeded (30 seconds). Aborting.\n";
-                // Handle timeout failure, return an appropriate failure state or throw an exception
-                // For demonstration, returning an empty policy
-                return {};
-            }
-             */
-
-
-            // get the current t
-            double t = _time_list.top();
-            _time_list.pop();
-            _time_set.erase(t);
-
-            // get the next t
-            double t2 = get_tmin2();
-            const auto& Sfrom = _policy.back();
-
-
-            if (reach_Goal()) {
-                if(Debug_asyPibt){std::cout<<"Solution found"<<std::endl;}
-                add_lastStep();
-                get_makespan();
-                get_Soc();
-                return extract_policy();
-            }
-
-            // extract the agents who should move in this planning loop
-            auto curr_agents = extract_Agents(t);
-
-            // generate raw Sto from Sfrom and curr_agents
-            std::vector<State*> Sto = get_rawSto(_policy.back(), curr_agents, t);
-
-            // update priority
-            update_Priority();
-
-            // Sort the agents by their priority
-            std::sort(curr_agents.begin(), curr_agents.end(), [](const Agent* a, const Agent* b) {
-                return a->get_priority() > b->get_priority();
-            });
-
-
-            // Generate path
-            for (auto& agent : curr_agents) {
-                if (Sto[agent->get_id()] == nullptr) {
-                    asynchronous_Pibt(*agent, Sto, Sfrom, curr_agents, t2, t, {}, false);
-                }
-            }
-
-            // 1.update time list, 2.set agents curr, 3.add Sto to policy
-            update(curr_agents, Sto);
-        }
-    }
-
-    double Lsrp::re_makespan() {
-        return _makespan;
-    }
-
-    double Lsrp::re_soc() {
-        return _soc;
-    }
-
-    TimePathSet Lsrp::GetPlan(long nid) {
-        return raplab::TimePathSet();
-    }
-
-    std::unordered_map<std::string, double> Lsrp::GetStats() {
-        return _stats;
-    }
-
+     */
 
 }
