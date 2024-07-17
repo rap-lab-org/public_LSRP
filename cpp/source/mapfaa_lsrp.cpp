@@ -575,25 +575,47 @@ namespace raplab{
 // """
 //        extract each agents' policy
 //        """
-    std::vector<std::vector<std::tuple<long, long, double, double>>> Lsrp::extract_policy() const {
-        std::vector<std::vector<std::tuple<long, long, double, double>>> paths(_agents.size());
+    void Lsrp::extract_policy(){
+        std::vector<std::vector<std::tuple<long, long, double, double>>> all_paths(_agents.size());
 
         // Add the first
         for (size_t i = 0; i < _agents.size(); ++i) {
-            paths[i].push_back(_policy[0][i]->get_tuple());
+            all_paths[i].push_back(_policy[0][i]->get_tuple());
         }
 
         // Iterate over policy and extract paths
         for (size_t index = 1; index < _policy.size(); ++index) {
             for (size_t i = 0; i < _agents.size(); ++i) {
                 std::tuple<long, long, double, double> tmp = _policy[index][i]->get_tuple();
-                if (tmp != paths[i].back()) {
-                    paths[i].push_back(tmp);
+                if (tmp != all_paths[i].back()) {
+                    all_paths[i].push_back(tmp);
                 }
             }
         }
 
-        return paths;
+        for (auto individu_path : all_paths) {
+            TimePath timePath;
+            for (size_t i = 0; i < individu_path.size(); ++i) {
+                long start_node, end_node;
+                double start_time, end_time;
+                std::tie(start_node, end_node, start_time, end_time) = individu_path[i];
+
+                // Insert start node and time
+                if (i == 0 || start_node != end_node) {
+                    timePath.nodes.push_back(start_node);
+                    timePath.times.push_back(start_time);
+                }
+
+                // Insert end node and time if it's a move
+                if (start_node != end_node) {
+                    timePath.nodes.push_back(end_node);
+                    timePath.times.push_back(end_time);
+                } else if (i > 0 && start_node == end_node) { // Handle waiting times
+                    timePath.times.back() = end_time;
+                }
+            }
+            _paths.push_back(timePath);
+        }
     }
 
 
@@ -713,7 +735,7 @@ namespace raplab{
         return 0;
     }
 
-    std::vector<std::vector<std::tuple<long, long, double, double>>> Lsrp::solve() {
+    int Lsrp::solve() {
         if(Debug_asyPibt) {std::cout<<"Second layer solve arrives"<<std::endl;}
         _time_list.push(0.0);  // start time: 0 for all
         _time_set.insert(0.0);
@@ -748,10 +770,11 @@ namespace raplab{
 
             if (reach_Goal()) {
                 if(Debug_asyPibt){std::cout<<"Solution found"<<std::endl;}
-                add_lastStep();
+                //add_lastStep();
                 get_makespan();
                 get_Soc();
-                return extract_policy();
+                extract_policy();
+                return 1;
             }
 
             // extract the agents who should move in this planning loop
@@ -790,7 +813,7 @@ namespace raplab{
     }
 
     TimePathSet Lsrp::GetPlan(long nid) {
-        return raplab::TimePathSet();
+        return _paths;
     }
 
     std::unordered_map<std::string, double> Lsrp::GetStats() {

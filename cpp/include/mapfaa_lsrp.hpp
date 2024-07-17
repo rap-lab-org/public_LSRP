@@ -266,8 +266,8 @@ namespace raplab {
 
         virtual void add_lastStep();
 
-        std::vector<std::vector<std::tuple<long, long, double, double>>>
-        extract_policy() const;
+
+        void extract_policy();
 
 
         /* integration of pibt and push_required and push_possible
@@ -279,7 +279,7 @@ namespace raplab {
                           bool in_pibt);
         */
 
-        std::vector<std::vector<std::tuple<long, long, double, double>>> solve();
+        int solve();
 
         virtual double re_soc() ;
 
@@ -307,6 +307,7 @@ namespace raplab {
         virtual int asy_pibt(const Agent &agent, std::vector<State*> &Sto,
                              const std::vector<State*> &Sfrom, const std::vector<Agent *> &curr_agents,
                              double tmin2, double curr_t);
+
 
     private:
 
@@ -349,6 +350,7 @@ namespace raplab {
         double _time_limit;
         std::mt19937 _rng;
         std::unordered_map<std::string, double> _stats;
+        TimePathSet _paths;
     };
 }
 
