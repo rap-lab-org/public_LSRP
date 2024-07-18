@@ -27,7 +27,7 @@ namespace raplab {
 #define Soc 0
 #define Distance_sort 1
 #define Duration_sort 1
-#define Swap 0;
+#define Swap 1
     /*
     struct nullopt_t {
         constexpr nullopt_t(int) {}  // 构造函数用于禁止隐式转换
@@ -313,11 +313,11 @@ namespace raplab {
                                               const std::vector<State*> &Sfrom,std::vector<State*> &Sto,
                                               std::vector<long> &C);
 
-        virtual bool swap_required(const Agent &agenti,const Agent &agentj,const std::vector<State*> &Sfrom,
-                                   std::vector<State*> &Sto);
+        virtual bool swap_required(const Agent &pusher,const Agent &puller,const std::vector<State*> &Sfrom,
+                                   std::vector<State*> &Sto,long v_pusher_init,long v_puller_init);
 
-        virtual bool swap_possible(const Agent &agenti,const Agent &agentj,const std::vector<State*> &Sfrom,
-                                   std::vector<State*> &Sto);
+        virtual bool swap_possible(const std::vector<State*> &Sfrom,std::vector<State*> &Sto,
+                                   long v_pusher_init,long v_puller_init);
 
         virtual Agent* Check_occupied_forSwap(const std::vector<Agent*>& curr_agents,
                                               const long& u,

@@ -686,23 +686,25 @@ namespace raplab{
         if (C[0] == Sfrom[agent.get_id()]->get_v()) {return nullptr;} // the agent wants to stay here
         auto aj = Check_occupied_forSwap(curr_agents,C[0],Sfrom,Sto, true);
         // Sto[aj.get_id()] == nullptr is already check in Check_occupied_for swap function
-        if (aj != nullptr && swap_required(agent,*aj,Sfrom,Sto)
-        && swap_possible(*aj,agent,Sfrom,Sto)) {
+        if (aj != nullptr && swap_required(agent,*aj,Sfrom,Sto,Sfrom[agent.get_id()]->get_v(),
+                                           Sfrom[aj->get_id()]->get_v())
+        && swap_possible(Sfrom,Sto,Sfrom[aj->get_id()]->get_v(),Sfrom[agent.get_id()]->get_v())) {
             return aj;
         }
         for (long u : _graph->GetSuccs(Sfrom[agent.get_id()]->get_v()))
         {
             auto ak = Check_occupied_forSwap(curr_agents,u,Sfrom,Sto, true);
             if (ak == nullptr || C[0] == Sfrom[ak->get_id()]->get_v()) { continue;}
-            if (swap_required(ak,agent,S))
+            if (swap_required(*ak,agent,Sfrom,Sto,Sfrom[agent.get_id()]->get_v(),C[0]) &&
+                    swap_possible(Sfrom,Sto,C[0],Sfrom[agent.get_id()]->get_v())) {
+                return ak;
+            }
         }
         return nullptr;
     }
 
     bool Lsrp::swap_required(const Agent &pusher, const Agent &puller, const std::vector<State *> &Sfrom,
-                             std::vector<State *> &Sto) {
-        long v_pusher_init = Sfrom[pusher.get_id()]->get_v();
-        long v_puller_init = Sfrom[puller.get_id()]->get_v();
+                             std::vector<State *> &Sto,long v_pusher_init,long v_puller_init) {
         //initialize
         long v_pusher = v_pusher_init;
         long v_puller = v_puller_init;
@@ -733,10 +735,8 @@ namespace raplab{
         // check if  when reach the dead end, the distance of pusher and puller to their goal are lowest among two of them
     }
 
-    bool Lsrp::swap_possible(const Agent &pusher, const Agent &puller, const std::vector<State *> &Sfrom,
-                             std::vector<State *> &Sto) {
-        long v_pusher_init = Sfrom[pusher.get_id()]->get_v();
-        long v_puller_init = Sfrom[puller.get_id()]->get_v();
+    bool Lsrp::swap_possible(const std::vector<State *> &Sfrom, std::vector<State *> &Sto, long v_pusher_init,
+                             long v_puller_init) {
         //initialize
         long v_pusher = v_pusher_init;
         long v_puller = v_puller_init;
@@ -796,7 +796,16 @@ namespace raplab{
         std::sort(C.begin(), C.end(), [&](const long& coord1, const long& coord2) {
             return get_h(agent, coord1) < get_h(agent, coord2);
         });
-
+        //if (Swap) {
+            /** Swap part
+             *
+             */
+            // if swap the reverse the C
+            auto ak = swap_required_possible(curr_agents,agent,Sfrom,Sto,C);
+            if (ak != nullptr) {
+                std::reverse(C.begin(), C.end());
+            }
+        //}
         for (const auto& v : C) {
             if (check_Occupied(agent, v, Sto, {}, false)) {
                 continue;
@@ -827,12 +836,44 @@ namespace raplab{
                 std::vector<std::tuple<Agent, State*>> agent_state_list;
                 agent_state_list.push_back({agent, next_state});
                 agent_state_list.push_back({agent, next_next_state});
+                /** Swap part
+                 *
+                 */
+                //if (Swap) {
+                    if (v == C.front() && v != Sfrom[agent.get_id()]->get_v() && ak != nullptr &&
+                    Sto[ak->get_id()] == nullptr) {
+                        const State* parent_ak = Sfrom[ak->get_id()];
+                        State* next_ak_state = new State(parent_ak->get_v(),parent_ak->get_v(),
+                                                         parent_ak->get_endT(),tmove);
+                        Sto[ak->get_id()] = next_ak_state;
+                        State* next_next_ak_state = new State(parent_ak->get_v(),Sfrom[agent.get_id()]->get_v(),
+                                                              tmove,tmove + get_duration(*ak));
+                        agent_state_list.push_back({*ak, next_ak_state});
+                        agent_state_list.push_back({*ak, next_next_ak_state});
+                    }
+                //}
                 insert_policy(agent_state_list, new_policy);
                 merge_policy(new_policy, curr_t);
                 return 1;
             } else {
                 State* next_state = new State(generate_state(v, agent, Sfrom, &tmin2));
                 Sto[agent.get_id()] = next_state;
+                if (v == C.front() && v != Sfrom[agent.get_id()]->get_v() && ak != nullptr &&
+                    Sto[ak->get_id()] == nullptr) {
+                    const State* parent_ak = Sfrom[ak->get_id()];
+                    State* next_ak_state = new State(parent_ak->get_v(),parent_ak->get_v(),
+                                                     parent_ak->get_endT(),curr_t + get_duration(agent));
+                    Sto[ak->get_id()] = next_ak_state;
+                    State* next_next_ak_state = new State(parent_ak->get_v(),Sfrom[agent.get_id()]->get_v(),
+                                                          curr_t + get_duration(agent),
+                                                          curr_t + get_duration(agent) + get_duration(*ak));
+                    std::vector<std::tuple<Agent, State*>> agent_state_list;
+                    agent_state_list.push_back({*ak, next_ak_state});
+                    agent_state_list.push_back({*ak, next_next_ak_state});
+                    std::unordered_map<double, std::vector<State*>> new_policy;
+                    insert_policy(agent_state_list, new_policy);
+                    merge_policy(new_policy, curr_t);
+                }
                 return 1;
             }
         }
@@ -924,7 +965,6 @@ namespace raplab{
     std::unordered_map<std::string, double> Lsrp::GetStats() {
         return _stats;
     }
-
 
     /* abandoned version   The integration of push_required_possible and  pibt
     std::tuple<double, std::unordered_map<double, std::vector<State*>>> Lsrp::asynchronous_Pibt(const Agent& agent, std::vector<State*> &Sto, const std::vector<State*>& Sfrom, const std::vector<Agent*>& curr_agents, double tmin2, double curr_t, const std::vector<long>& constrain_list, bool in_pibt) {
