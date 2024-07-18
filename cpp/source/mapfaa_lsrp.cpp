@@ -680,6 +680,111 @@ namespace raplab{
         return std::make_tuple(-1, std::unordered_map<double, std::vector<State*>>());
     }
 
+    Agent *Lsrp::swap_required_possible(const std::vector<Agent *> &curr_agents, const Agent &agent,
+                                        const std::vector<State *> &Sfrom, std::vector<State *> &Sto,
+                                        std::vector<long> &C) {
+        if (C[0] == Sfrom[agent.get_id()]->get_v()) {return nullptr;} // the agent wants to stay here
+        auto aj = Check_occupied_forSwap(curr_agents,C[0],Sfrom,Sto, true);
+        // Sto[aj.get_id()] == nullptr is already check in Check_occupied_for swap function
+        if (aj != nullptr && swap_required(agent,*aj,Sfrom,Sto)
+        && swap_possible(*aj,agent,Sfrom,Sto)) {
+            return aj;
+        }
+        for (long u : _graph->GetSuccs(Sfrom[agent.get_id()]->get_v()))
+        {
+            auto ak = Check_occupied_forSwap(curr_agents,u,Sfrom,Sto, true);
+            if (ak == nullptr || C[0] == Sfrom[ak->get_id()]->get_v()) { continue;}
+            if (swap_required(ak,agent,S))
+        }
+        return nullptr;
+    }
+
+    bool Lsrp::swap_required(const Agent &pusher, const Agent &puller, const std::vector<State *> &Sfrom,
+                             std::vector<State *> &Sto) {
+        long v_pusher_init = Sfrom[pusher.get_id()]->get_v();
+        long v_puller_init = Sfrom[puller.get_id()]->get_v();
+        //initialize
+        long v_pusher = v_pusher_init;
+        long v_puller = v_puller_init;
+        long next;  // the next move of puller
+        while (get_h(pusher,v_puller) < get_h(pusher,v_pusher))  // avoid endless loop
+        {
+            std::vector<long> v_puller_nghs = _graph->GetSuccs(v_puller);
+            int n = v_puller_nghs.size();
+            for (long u : v_puller_nghs)
+            {
+                auto a = Check_occupied_forSwap({},u,Sfrom,Sto, false);
+                if (u == v_pusher ||
+                    (_graph->GetSuccs(u)).size() == 1 && a != nullptr && _Send[a->get_id()] == u){
+                    --n;
+                } else {
+                    next = u;
+                }
+            }
+            if (n >= 2) {return false;} // swap not required, because the push can satisfy the requirement
+            if (n <= 0) { break;} // swap impossible -> dead end;
+            // none of them  n = 1 , keep exploring
+            v_pusher = v_puller;
+            v_puller = next;
+        }
+        return (get_h(puller,v_pusher)< get_h(puller,v_puller)) &&
+        (get_h(pusher,v_pusher) == 0
+        || get_h(pusher,v_puller)< get_h(pusher,v_pusher));
+        // check if  when reach the dead end, the distance of pusher and puller to their goal are lowest among two of them
+    }
+
+    bool Lsrp::swap_possible(const Agent &pusher, const Agent &puller, const std::vector<State *> &Sfrom,
+                             std::vector<State *> &Sto) {
+        long v_pusher_init = Sfrom[pusher.get_id()]->get_v();
+        long v_puller_init = Sfrom[puller.get_id()]->get_v();
+        //initialize
+        long v_pusher = v_pusher_init;
+        long v_puller = v_puller_init;
+        long next;  // the next move of puller
+        while (v_puller != v_pusher_init)  // avoid endless loop
+        {
+            std::vector<long> v_puller_nghs = _graph->GetSuccs(v_puller);
+            int n = v_puller_nghs.size();
+            for (long u : v_puller_nghs)
+            {
+                auto a = Check_occupied_forSwap({},u,Sfrom,Sto, false);
+                if (u == v_pusher ||
+                (_graph->GetSuccs(u)).size() == 1 && a != nullptr && _Send[a->get_id()] == u){
+                    --n;
+                } else {
+                    next = u;
+                }
+            }
+            if (n >= 2) {return true;} // swap possible -> because there are wider place to swap,
+            if (n <= 0) {return false;} // swap impossible -> dead end;
+            // none of them  n = 1 , keep exploring
+            v_pusher = v_puller;
+            v_puller = next;
+        }
+        return false; // swap impossible there is a loop here
+    }
+
+    Agent *Lsrp::Check_occupied_forSwap(const std::vector<Agent *> &curr_agents, const long &u,
+                                        const std::vector<State *> &Sfrom, const std::vector<State *> &Sto,
+                                        bool curr_A_required) {
+        if (curr_A_required) {
+            for (const auto &ag_ptr: curr_agents) {
+                // check id this agent satisfies the requirement that its next state is not decided yet and its last state arrives at here
+                if (check_potential_deadlock(u, *ag_ptr, Sfrom, Sto)) { // 解引用指针传递给函数
+                    return ag_ptr; // 返回agent对象
+                }
+            }
+            return nullptr;
+        } else {
+            for (const auto &ag_ptr: _agents) {
+                if (Sfrom[ag_ptr->get_id()]->get_v() == u) {
+                    return ag_ptr;
+                }
+            }
+            return nullptr;
+        }
+    }
+
     int Lsrp::asy_pibt(const Agent &agent, std::vector<State *> &Sto, const std::vector<State *> &Sfrom,
                        const std::vector<Agent *> &curr_agents, double tmin2, double curr_t) {
         //abandoned version   The integration of push_required_possible and  pibt
@@ -819,6 +924,7 @@ namespace raplab{
     std::unordered_map<std::string, double> Lsrp::GetStats() {
         return _stats;
     }
+
 
     /* abandoned version   The integration of push_required_possible and  pibt
     std::tuple<double, std::unordered_map<double, std::vector<State*>>> Lsrp::asynchronous_Pibt(const Agent& agent, std::vector<State*> &Sto, const std::vector<State*>& Sfrom, const std::vector<Agent*>& curr_agents, double tmin2, double curr_t, const std::vector<long>& constrain_list, bool in_pibt) {
