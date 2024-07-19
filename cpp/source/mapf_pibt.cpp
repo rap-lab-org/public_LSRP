@@ -77,7 +77,11 @@ int Pibt::Solve(std::vector<long> &starts, std::vector<long> &goals, double time
             // Pibt planning
         for (auto &agent: agents_) {
             if (Sto[agent.id] == -1) {
-                PIBT(&agent, nullptr, Sfrom, Sto);
+                if (Swap) {
+                    PIBT_SWAP(&agent, nullptr,Sfrom,Sto);
+                } else {
+                    PIBT(&agent, nullptr, Sfrom, Sto);
+                }
             }
         }
         // if Sto already exist in the joint_policy: fail
@@ -132,6 +136,45 @@ bool Pibt::PIBT(Agent *agent1, Agent *agent2, const std::vector<long> &Sfrom, st
     Sto[agent1->id] = Sfrom[agent1->id];
     return false;
 }
+
+    bool Pibt::PIBT_SWAP(Agent *agent1, Agent *agent2, const std::vector<long> &Sfrom, std::vector<long> &Sto) {
+        if (DEBUG_PIBT) {
+            if (debug_counter == 4){
+                std::cout<<"do some check bro"<<std::endl;
+            }
+        }
+        std::vector<long> C = _graph->GetSuccs(Sfrom[agent1->id]);
+        C.push_back(Sfrom[agent1->id]);
+        std::shuffle(C.begin(), C.end(), rng_);
+        //sort node by dis_table value
+        auto &policy = _policies.at(agent1->id);
+        std::sort(C.begin(), C.end(), [&](long a, long b) {
+            return policy.H(a) < policy.H(b);
+        });
+        // swap part
+        auto aj = swap_possible_required(agent1,Sfrom,Sto,C);
+        if (aj != nullptr) { std::reverse(C.begin(), C.end());}
+        for (long v: C){
+            if(checkOccupied(v, Sto)){
+                continue;
+            }
+            if(agent2 != nullptr && Sfrom[agent2->id] == v){
+                continue;
+            }
+            Sto[agent1->id] = v;
+            Agent* a2 = mayPush(v, Sfrom, Sto);
+            if (a2 != nullptr){
+                if(!PIBT(a2, agent1, Sfrom, Sto)){
+                    continue;
+                }
+            }
+            // swap part
+            if (v == C[0] && aj != nullptr && Sto[aj->id] == -1) {Sto[aj->id] = Sfrom[agent1->id];}
+            return true;
+        }
+        Sto[agent1->id] = Sfrom[agent1->id];
+        return false;
+    }
 
 std::vector<std::vector<long>> Pibt::GetPlan(long nid) {
     return joint_policy_;
@@ -198,6 +241,88 @@ Agent *Pibt::mayPush(long v, const std::vector<long> &Sfrom, const std::vector<l
     }
 }
 
+Agent *Pibt::swap_possible_required(Agent *agent1, const std::vector<long> &Sfrom, const std::vector<long> &Sto,
+                                    std::vector<long> C) {
+    if (C[0] == Sfrom[agent1->id]) {return nullptr;}
+    auto aj = occupied_now(C[0],Sfrom);
+    if ((aj != nullptr) && (Sto[aj->id] == -1) && (
+    is_swap_required(agent1,aj,Sfrom[agent1->id],Sfrom[aj->id],Sfrom,Sto)) &&(
+    is_swap_possible(Sfrom[aj->id],Sfrom[agent1->id],Sfrom,Sto))) {
+        return aj;
+    }
+
+    for (long u : _graph->GetSuccs(Sfrom[agent1->id])) {
+        auto ak = occupied_now(u,Sfrom);
+        if(ak == nullptr || C[0] == Sfrom[ak->id]) { continue;}
+        if (is_swap_required(ak,agent1,Sfrom[agent1->id],C[0],Sfrom,Sto)&&
+            is_swap_possible(C[0],Sfrom[agent1->id],Sfrom,Sto)) {return ak;}
+    }
+    return nullptr;
+}
+
+    bool Pibt::is_swap_required(Agent *pusher, Agent *puller, long v_pusher_origin, long v_puller_origin,
+                                const std::vector<long> &Sfrom, const std::vector<long> &Sto) {
+    long v_pusher = v_pusher_origin;
+    long v_puller = v_puller_origin;
+    long tmp;
+    auto &policy_pusher = _policies.at(pusher->id);
+    auto &policy_puller = _policies.at(puller->id);
+    while (policy_pusher.H(v_puller) < policy_pusher.H(v_pusher)) {
+        std::vector<long> nghs = _graph->GetSuccs(v_puller);
+        auto n = nghs.size();
+        for (long u: nghs) {
+            auto a = occupied_now(u,Sfrom);
+            if (u != v_pusher ||
+                    (_graph->GetSuccs(u)).size() == 1 && a != nullptr && u == Sto[a->id]) {
+                --n;
+            } else {
+                tmp = u;
+            }
+        }
+        if (n >= 2){return false;}
+        if (n <= 0){ break;}
+        v_pusher = v_puller;
+        v_puller = tmp;
+    }
+        return (policy_puller.H(v_pusher) < policy_puller.H(v_puller)) &&
+                (policy_pusher.H(v_pusher)[0] == 0 ||
+                policy_pusher.H(v_puller) < policy_pusher.H(v_pusher));
+    }
+
+    bool Pibt::is_swap_possible(long v_pusher_origin, long v_puller_origin, const std::vector<long> &Sfrom,
+                                const std::vector<long> &Sto) {
+        long v_pusher = v_pusher_origin;
+        long v_puller = v_puller_origin;
+        long tmp;
+        while (v_puller != v_pusher_origin) {
+            std::vector<long> nghs = _graph->GetSuccs(v_puller);
+            auto n = nghs.size();
+            for (long u: nghs) {
+                auto a = occupied_now(u,Sfrom);
+                if (u != v_pusher ||
+                    (_graph->GetSuccs(u)).size() == 1 && a != nullptr && u == Sto[a->id]) {
+                    --n;
+                } else {
+                    tmp = u;
+                }
+            }
+            if (n >= 2){return true;}
+            if (n <= 0){return false;}
+            v_pusher = v_puller;
+            v_puller = tmp;
+        }
+        return false;
+    }
+
+Agent *Pibt::occupied_now(long v, const std::vector<long> &Sfrom) {
+    for (int i = 0;i < agents_.size(); i++) {
+        if (Sfrom[agents_[i].id] == v){
+            return &agents_[i];
+        }
+    }
+    return nullptr;
+}
+
 bool Pibt::generatePolicy() {
     _policies.clear();
     for (int ri = 0; ri < v_init_.size(); ri++) {
@@ -223,6 +348,7 @@ int Pibt::_Solve(std::vector<long> &starts, std::vector<long> &goals, double tim
      set_policy(policies);
      return  Solve(starts, goals, time_limit, eps);
 }
+
 }
 
 

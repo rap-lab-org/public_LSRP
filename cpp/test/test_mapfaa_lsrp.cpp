@@ -4,6 +4,7 @@
  *******************************************/
 
 #include "mapfaa_lsrp.hpp"
+#include "mapf_pibt.hpp"
 // #include "lattice_xya.hpp"
 #include "debug.hpp"
 #include <iostream>
@@ -31,22 +32,25 @@ int TestLsrp(){
     //  Note: *=free, #=obstacle, R1,R2,R3 = robot start, G1,G2,G3 = robot goals
     // -------------------------------------------------------------------------------
     raplab::Grid2d g;
-    int r=3,c=3;
+    int r=4,c=3;
     std::vector<std::vector<double>> occupancy_grid;
     occupancy_grid.resize(r);
     for (int i = 0; i < r; i++){
         occupancy_grid[i].resize(c, 0);
     }
-    occupancy_grid[0][0] = 1;
-    occupancy_grid[0][1] = 1;
-    occupancy_grid[0][2] = 1;
+    occupancy_grid[1][0] = 1;
+    occupancy_grid[1][2] = 1;
+    occupancy_grid[2][0] = 1;
+    occupancy_grid[2][2] = 1;
+    occupancy_grid[3][0] = 1;
+    occupancy_grid[3][2] = 1;
     //occupancy_grid[1][0] = 1;
     g.SetOccuGridPtr(&occupancy_grid);
     // not using it now
     double time_limit = 300;
-    std::vector<long> starts({6,8,5}); // node id = y*NumX + x; e.g. (y=1)*4 + (x=0) = 4
+    std::vector<long> starts({4,7}); // node id = y*NumX + x; e.g. (y=1)*4 + (x=0) = 4
     // the length of starts shows how many agents are there.
-    std::vector<long> goals({5,6,8});
+    std::vector<long> goals({7,4});
 
     raplab::Lsrp planner;
     planner.SetGraphPtr(&g);

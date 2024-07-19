@@ -18,6 +18,7 @@
 
 namespace raplab{
 #define DEBUG_PIBT 0
+#define Swap 1
 
 struct Agent
 {
@@ -53,6 +54,14 @@ public:
 
 protected:
     bool PIBT(Agent* agent1, Agent* agent2, const std::vector<long>& Sfrom, std::vector<long>& Sto);
+    bool PIBT_SWAP(Agent* agent1, Agent* agent2, const std::vector<long> &Sfrom, std::vector<long> &Sto);
+    Agent* swap_possible_required(Agent* agent1, const std::vector<long> &Sfrom, const std::vector<long> &Sto,
+                                  std::vector<long> C);
+    Agent* occupied_now(long v, const std::vector<long> &Sfrom);
+    bool is_swap_required(Agent* pusher, Agent* puller,long v_pusher_origin,long v_puller_origin,
+    const std::vector<long> &Sfrom, const std::vector<long> &Sto);
+    bool is_swap_possible(long v_pusher_origin,long v_puller_origin,
+                          const std::vector<long> &Sfrom, const std::vector<long> &Sto);
     bool checkOccupied(long v, const std::vector<long>& Sto);
     Agent* mayPush(long v,const std::vector<long> &Sfrom, const std::vector<long>& Sto);
 
