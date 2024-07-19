@@ -214,11 +214,11 @@ void CompileHelper();
 
         virtual std::vector<int> _Sort(long sid);
 
-        bool Pibt(Agent *agent1, Agent *agent2, const std::vector<long> &Sfrom, std::vector<long> &Sto,std::vector<Agent> agents_);
+        bool Pibt(_Agent *agent1, _Agent *agent2, const std::vector<long> &Sfrom, std::vector<long> &Sto,std::vector<_Agent> agents_);
 
-        bool checkOccupied(long v, const std::vector<long> &Sto,std::vector<Agent> agents_);
+        bool checkOccupied(long v, const std::vector<long> &Sto,std::vector<_Agent> agents_);
 
-        Agent *mayPush(long v, const std::vector<long> &Sfrom, const std::vector<long> &Sto, std::vector<Agent> agents_);
+        _Agent *mayPush(long v, const std::vector<long> &Sfrom, const std::vector<long> &Sto, std::vector<_Agent> agents_);
 
         void _Get_action(const long& sid, std::vector<long>* Sto);
 
@@ -278,7 +278,7 @@ void CompileHelper();
         std::unordered_map<std::vector<long>, bool> _Fullyexpanded_table;
         std::unordered_map<std::vector<long>, std::vector<tree_node>> _All_tree;
         std::unordered_map<std::vector<long>, std::set<std::vector<long>>> _All_closed_Set;
-        std::unordered_map<std::vector<long>, std::vector<Agent>> _All_pibtAgent_order;
+        std::unordered_map<std::vector<long>, std::vector<_Agent>> _All_pibtAgent_order;
         std::unordered_map<std::vector<long>, std::vector<int>> _All_node_Agentorder;
         std::unordered_map<std::vector<long>,std::set<int>> Ic_cache;
 

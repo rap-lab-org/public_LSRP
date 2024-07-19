@@ -18,7 +18,7 @@
 
 namespace raplab{
 #define DEBUG_PIBT 1
-#define Swap 0
+#define Swap 1
 
 struct _Agent
 {
@@ -53,23 +53,23 @@ public:
     bool generatePolicy();
 
 protected:
-    bool PIBT(Agent* agent1, Agent* agent2, const std::vector<long>& Sfrom, std::vector<long>& Sto);
-    bool PIBT_SWAP(Agent* agent1, Agent* agent2, const std::vector<long> &Sfrom, std::vector<long> &Sto);
-    Agent* swap_possible_required(Agent* agent1, const std::vector<long> &Sfrom, const std::vector<long> &Sto,
+    bool PIBT(_Agent* agent1, _Agent* agent2, const std::vector<long>& Sfrom, std::vector<long>& Sto);
+    bool PIBT_SWAP(_Agent* agent1, _Agent* agent2, const std::vector<long> &Sfrom, std::vector<long> &Sto);
+    _Agent* swap_possible_required(_Agent* agent1, const std::vector<long> &Sfrom, const std::vector<long> &Sto,
                                   std::vector<long> C);
-    Agent* occupied_now(long v, const std::vector<long> &Sfrom);
-    bool is_swap_required(Agent* pusher, Agent* puller,long v_pusher_origin,long v_puller_origin,
+    _Agent* occupied_now(long v, const std::vector<long> &Sfrom);
+    bool is_swap_required(_Agent* pusher, _Agent* puller,long v_pusher_origin,long v_puller_origin,
     const std::vector<long> &Sfrom, const std::vector<long> &Sto);
     bool is_swap_possible(long v_pusher_origin,long v_puller_origin,
                           const std::vector<long> &Sfrom, const std::vector<long> &Sto);
     bool checkOccupied(long v, const std::vector<long>& Sto);
-    Agent* mayPush(long v,const std::vector<long> &Sfrom, const std::vector<long>& Sto);
+    _Agent* mayPush(long v,const std::vector<long> &Sfrom, const std::vector<long>& Sto);
 
     std::mt19937 rng_;
     std::unordered_map<int, MstarPolicy> _policies;
     std::vector<std::vector<long>> joint_policy_;
     double cost_;
-    std::vector<Agent> agents_;
+    std::vector<_Agent> agents_;
     std::vector<long> v_init_;
     std::vector<long>  v_f_;
     double _tlimit;

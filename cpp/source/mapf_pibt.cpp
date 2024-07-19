@@ -43,7 +43,7 @@ int Pibt::Solve(std::vector<long> &starts, std::vector<long> &goals, double time
     agents_.clear();
     double gap = 1.0 / (starts.size() + 1);
     for (size_t i = 0; i < starts.size(); ++i) {
-        agents_.emplace_back(i, 1 - i * gap);
+        agents_.emplace_back(i, i * gap);
     }
     debug_counter = 0;
     //std::cout<<"debugging True solve"<<std::endl;
@@ -85,26 +85,23 @@ int Pibt::Solve(std::vector<long> &starts, std::vector<long> &goals, double time
             }
         }
         // if Sto already exist in the joint_policy: fail
+        /*
         if (std::find(joint_policy_.begin(), joint_policy_.end(), Sto) != joint_policy_.end()) {
             // Fail case
             //std::cout<<"fail bro, gotta do some"<<std::endl;
             return -1; // Return appropriate fail value
         }
+         */
         joint_policy_.push_back(Sto);
         if (DEBUG_PIBT) {
             for (long v: Sto) {
-                    std::cout<<v;}
+                    std::cout<<v<<" ";}
         }
-        
+        std::cout<<std::endl;
     }
 }
 
 bool Pibt::PIBT(_Agent *agent1, _Agent *agent2, const std::vector<long> &Sfrom, std::vector<long> &Sto) {
-    if (DEBUG_PIBT) {
-        if (debug_counter == 4){
-            std::cout<<"do some check bro"<<std::endl;
-        }
-    }
     std::vector<long> C = _graph->GetSuccs(Sfrom[agent1->id]);
     C.push_back(Sfrom[agent1->id]);
     std::shuffle(C.begin(), C.end(), rng_);
@@ -113,14 +110,6 @@ bool Pibt::PIBT(_Agent *agent1, _Agent *agent2, const std::vector<long> &Sfrom, 
     std::sort(C.begin(), C.end(), [&](long a, long b) {
         return policy.H(a) < policy.H(b);
     });
-
-    if(DEBUG_PIBT){
-        if (agent1->id == 1) {
-            for (long v: C) {
-                std::cout << agent1->id << ": " << v << ": " << policy.H(v) << std::endl;
-            }
-        }
-    }
 
     for (long v: C){
         if(checkOccupied(v, Sto)){
@@ -143,11 +132,6 @@ bool Pibt::PIBT(_Agent *agent1, _Agent *agent2, const std::vector<long> &Sfrom, 
 }
 
     bool Pibt::PIBT_SWAP(_Agent *agent1, _Agent *agent2, const std::vector<long> &Sfrom, std::vector<long> &Sto) {
-        if (DEBUG_PIBT) {
-            if (debug_counter == 4){
-                std::cout<<"do some check bro"<<std::endl;
-            }
-        }
         std::vector<long> C = _graph->GetSuccs(Sfrom[agent1->id]);
         C.push_back(Sfrom[agent1->id]);
         std::shuffle(C.begin(), C.end(), rng_);
@@ -158,7 +142,9 @@ bool Pibt::PIBT(_Agent *agent1, _Agent *agent2, const std::vector<long> &Sfrom, 
         });
         // swap part
         auto aj = swap_possible_required(agent1,Sfrom,Sto,C);
-        if (aj != nullptr) { std::reverse(C.begin(), C.end());}
+        if (aj != nullptr) {
+            std::reverse(C.begin(), C.end());
+        }
         for (long v: C){
             if(checkOccupied(v, Sto)){
                 continue;
@@ -169,7 +155,7 @@ bool Pibt::PIBT(_Agent *agent1, _Agent *agent2, const std::vector<long> &Sfrom, 
             Sto[agent1->id] = v;
             _Agent* a2 = mayPush(v, Sfrom, Sto);
             if (a2 != nullptr){
-                if(!PIBT(a2, agent1, Sfrom, Sto)){
+                if(!PIBT_SWAP(a2, agent1, Sfrom, Sto)){
                     continue;
                 }
             }
@@ -277,7 +263,7 @@ _Agent *Pibt::swap_possible_required(_Agent *agent1, const std::vector<long> &Sf
         auto n = nghs.size();
         for (long u: nghs) {
             auto a = occupied_now(u,Sfrom);
-            if (u != v_pusher ||
+            if (u == v_pusher ||
                     (_graph->GetSuccs(u)).size() == 1 && a != nullptr && u == Sto[a->id]) {
                 --n;
             } else {
@@ -304,7 +290,7 @@ _Agent *Pibt::swap_possible_required(_Agent *agent1, const std::vector<long> &Sf
             auto n = nghs.size();
             for (long u: nghs) {
                 auto a = occupied_now(u,Sfrom);
-                if (u != v_pusher ||
+                if (u == v_pusher ||
                     (_graph->GetSuccs(u)).size() == 1 && a != nullptr && u == Sto[a->id]) {
                     --n;
                 } else {

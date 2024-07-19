@@ -325,7 +325,7 @@ namespace raplab{
             });
             */
             _All_node_Agentorder[_states[sid].jv] = agent;
-            std::vector<Agent> pibt_agents;
+            std::vector<_Agent> pibt_agents;
             double gap = 1.0 / (agent.size() + 1);
             for (size_t i = 0; i < agent.size(); ++i) {
                 pibt_agents.emplace_back(i, 1 - i * gap);
@@ -391,7 +391,7 @@ namespace raplab{
             });
              */
             _All_node_Agentorder[_states[sid].jv] = agent;
-            std::vector<Agent> pibt_agents;
+            std::vector<_Agent> pibt_agents;
             double gap = 1.0 / (agent.size() + 1);
             for (size_t i = 0; i < agent.size(); ++i) {
                 pibt_agents.emplace_back(i, 1 - i * gap);
@@ -656,8 +656,8 @@ namespace raplab{
         }
     }
 
-    bool MPMstar::Pibt(Agent *agent1, Agent *agent2, const std::vector<long> &Sfrom, std::vector<long> &Sto,
-                       std::vector<Agent> agents_) {
+    bool MPMstar::Pibt(_Agent *agent1, _Agent *agent2, const std::vector<long> &Sfrom, std::vector<long> &Sto,
+                       std::vector<_Agent> agents_) {
         std::vector<long> C = _graph->GetSuccs(Sfrom[agent1->id]);
         C.push_back(Sfrom[agent1->id]);
         //sort node by dis_table value
@@ -675,7 +675,7 @@ namespace raplab{
                 continue;
             }
             Sto[agent1->id] = v;
-            Agent* a2 = mayPush(v, Sfrom, Sto,agents_);
+            _Agent* a2 = mayPush(v, Sfrom, Sto,agents_);
             if (a2 != nullptr){
                 if(!Pibt(a2, agent1, Sfrom, Sto,agents_)){
                     continue;
@@ -687,15 +687,15 @@ namespace raplab{
         return false;
     }
 
-    bool MPMstar::checkOccupied(long v, const std::vector<long> &Sto,std::vector<Agent> agents_) {
-        return std::any_of(agents_.begin(), agents_.end(), [&](const Agent& a) {
+    bool MPMstar::checkOccupied(long v, const std::vector<long> &Sto,std::vector<_Agent> agents_) {
+        return std::any_of(agents_.begin(), agents_.end(), [&](const _Agent& a) {
             return Sto[a.id] == v;
         });
     }
 
 // Check if any low priority agent take the place and needs to plan
-    Agent *MPMstar::mayPush(long v, const std::vector<long> &Sfrom, const std::vector<long> &Sto, std::vector<Agent> agents_) {
-        auto it = std::find_if(agents_.begin(), agents_.end(), [&](const Agent& a) {
+    _Agent *MPMstar::mayPush(long v, const std::vector<long> &Sfrom, const std::vector<long> &Sto, std::vector<_Agent> agents_) {
+        auto it = std::find_if(agents_.begin(), agents_.end(), [&](const _Agent& a) {
             return Sfrom[a.id] == v && Sto[a.id] == -1;
         });
 

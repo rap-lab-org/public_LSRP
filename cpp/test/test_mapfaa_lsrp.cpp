@@ -63,7 +63,7 @@ int TestLsrp(){
     auto plan = planner.GetPlan();
     auto cost = planner.GetPlanCost();
     std::cout<<" The SOC is "<<cost[0]<<std::endl;
-    std::cout<<"The Makespan is"<<cost[1]<<std::endl;
+    //std::cout<<"The Makespan is"<<cost[1]<<std::endl;
     /*
     for (auto path: plan) {
         std::cout << " path = " << path << std::endl;
