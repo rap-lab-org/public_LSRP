@@ -836,21 +836,85 @@ namespace raplab{
                 std::vector<std::tuple<Agent, State*>> agent_state_list;
                 agent_state_list.push_back({agent, next_state});
                 agent_state_list.push_back({agent, next_next_state});
+                insert_policy(agent_state_list, new_policy);
+                merge_policy(new_policy, curr_t);
+                return 1;
+            } else {
+                State* next_state = new State(generate_state(v, agent, Sfrom, &tmin2));
+                Sto[agent.get_id()] = next_state;
+                return 1;
+            }
+        }
+        // won't arrive here, since no agent will pre occupied another agents at current place
+        return 0;
+    }
+
+    int Lsrp::asy_pibt_swap(Agent &agent, std::vector<State *> &Sto, const std::vector<State *> &Sfrom,
+                       const std::vector<Agent *> &curr_agents, double tmin2, double curr_t) {
+        //abandoned version   The integration of push_required_possible and  pibt
+        std::vector<long> C = {agent.get_curr()->get_v()};
+        const auto& neighbors = _graph->GetSuccs(agent.get_curr()->get_v());
+        C.insert(C.end(), neighbors.begin(), neighbors.end());
+
+        std::shuffle(C.begin(), C.end(), _rng);
+        std::sort(C.begin(), C.end(), [&](const long& coord1, const long& coord2) {
+            return get_h(agent, coord1) < get_h(agent, coord2);
+        });
+        //if (Swap) {
+        /** Swap part
+         *
+         */
+        // if swap the reverse the C
+        auto ak = swap_required_possible(curr_agents,agent,Sfrom,Sto,C);
+        if (ak != nullptr) {
+            std::reverse(C.begin(), C.end());
+        }
+        //}
+        for (const auto& v : C) {
+            if (check_Occupied(agent, v, Sto, {}, false)) {
+                continue;
+            }
+
+            auto ag_opt = push_required(curr_agents, agent, v, Sfrom, Sto);
+            if (ag_opt != nullptr) {
+                auto ag = ag_opt;
+
+                std::vector<long> new_constrain_list;
+                new_constrain_list = {Sfrom[agent.get_id()]->get_v()};
+
+                double twait;
+                std::unordered_map<double, std::vector<State*>> new_policy;
+                std::tie(twait, new_policy) = push_possible_swap(*ag, Sto, Sfrom, curr_agents, tmin2, curr_t, new_constrain_list,agent);
+                if (twait == -1) {
+                    // not push_possible  we go with
+                    continue;
+                }
+
+                auto parent = Sfrom[agent.get_id()];
+                State* next_state = new State(parent->get_v(), parent->get_v(), parent->get_endT(), twait);
+                Sto[agent.get_id()] = next_state;
+                // push possible so we wait here
+                double tmove = twait + get_duration(agent);
+                State* next_next_state = new State(parent->get_v(), v, twait, tmove);
+                // at next timestamp, go to the push_required agent's place
+                std::vector<std::tuple<Agent, State*>> agent_state_list;
+                agent_state_list.push_back({agent, next_state});
+                agent_state_list.push_back({agent, next_next_state});
                 /** Swap part
                  *
                  */
                 //if (Swap) {
-                    if (v == C.front() && v != Sfrom[agent.get_id()]->get_v() && ak != nullptr &&
+                if (v == C.front() && v != Sfrom[agent.get_id()]->get_v() && ak != nullptr &&
                     Sto[ak->get_id()] == nullptr) {
-                        const State* parent_ak = Sfrom[ak->get_id()];
-                        State* next_ak_state = new State(parent_ak->get_v(),parent_ak->get_v(),
-                                                         parent_ak->get_endT(),tmove);
-                        Sto[ak->get_id()] = next_ak_state;
-                        State* next_next_ak_state = new State(parent_ak->get_v(),Sfrom[agent.get_id()]->get_v(),
-                                                              tmove,tmove + get_duration(*ak));
-                        agent_state_list.push_back({*ak, next_ak_state});
-                        agent_state_list.push_back({*ak, next_next_ak_state});
-                    }
+                    const State* parent_ak = Sfrom[ak->get_id()];
+                    State* next_ak_state = new State(parent_ak->get_v(),parent_ak->get_v(),
+                                                     parent_ak->get_endT(),tmove);
+                    Sto[ak->get_id()] = next_ak_state;
+                    State* next_next_ak_state = new State(parent_ak->get_v(),Sfrom[agent.get_id()]->get_v(),
+                                                          tmove,tmove + get_duration(*ak));
+                    agent_state_list.push_back({*ak, next_ak_state});
+                    agent_state_list.push_back({*ak, next_next_ak_state});
+                }
                 //}
                 insert_policy(agent_state_list, new_policy);
                 merge_policy(new_policy, curr_t);
@@ -879,6 +943,103 @@ namespace raplab{
         }
         // won't arrive here, since no agent will pre occupied another agents at current place
         return 0;
+    }
+
+    std::tuple<double, std::unordered_map<double, std::vector<State *>>>
+    Lsrp::push_possible_swap(Agent &agent, std::vector<State *> &Sto, const std::vector<State *> &Sfrom,
+                             const std::vector<Agent *> &curr_agents, double tmin2, double curr_t,
+                             const std::vector<long> &constrain_list, Agent &pusher) {
+        // the first part almost the same as aynchronous pibt
+        std::vector<long> C;
+        const auto& neighbors = _graph->GetSuccs(agent.get_curr()->get_v());
+        C.insert(C.end(), neighbors.begin(), neighbors.end());
+
+        std::shuffle(C.begin(), C.end(), _rng);
+        std::sort(C.begin(), C.end(), [&](const long& coord1, const long& coord2) {
+            return get_h(agent, coord1) < get_h(agent, coord2);
+        });
+        // swap part
+        auto ak = swap_required_possible(curr_agents,agent,Sfrom,Sto,C);
+        if (ak != nullptr) {
+            std::reverse(C.begin(), C.end());
+        }
+        for (const auto& v : C) {
+            if (check_Occupied(agent, v, Sto, constrain_list, true)) {
+                continue;
+            }
+            auto ag_opt = push_required(curr_agents, agent, v, Sfrom, Sto);
+            if (ag_opt != nullptr) {
+                auto ag = ag_opt;
+
+                std::vector<long> new_constrain_list;
+                new_constrain_list = constrain_list;
+                new_constrain_list.push_back(agent.get_curr()->get_v());
+
+                double twait;
+                std::unordered_map<double, std::vector<State*>> new_policy;
+                std::tie(twait, new_policy) = push_possible_swap(*ag, Sto, Sfrom, curr_agents, tmin2, curr_t, new_constrain_list,agent);
+
+                if (twait == -1) {
+                    // which means not pibt _possible  stop recursive detection
+                    return std::make_tuple(-1, std::unordered_map<double, std::vector<State*>>());
+                }
+
+                auto parent = Sfrom[agent.get_id()];
+                State* next_state = new State(parent->get_v(), parent->get_v(), parent->get_endT(), twait);
+                Sto[agent.get_id()] = next_state;
+                double tmove = twait + get_duration(agent);
+                State* next_next_state = new State(parent->get_v(), v, twait, tmove);
+                std::vector<std::tuple<Agent, State*>> agent_state_list;
+                agent_state_list.push_back({agent, next_state});
+                agent_state_list.push_back({agent, next_next_state});
+                if (v == C.front() && v != Sfrom[agent.get_id()]->get_v() && ak != &pusher && ak != nullptr &&
+                    Sto[ak->get_id()] == nullptr) {
+                    const State* parent_ak = Sfrom[ak->get_id()];
+                    State* next_ak_state = new State(parent_ak->get_v(),parent_ak->get_v(),
+                                                     parent_ak->get_endT(),tmove);
+                    Sto[ak->get_id()] = next_ak_state;
+                    State* next_next_ak_state = new State(parent_ak->get_v(),Sfrom[agent.get_id()]->get_v(),
+                                                          tmove,tmove + get_duration(*ak));
+                    agent_state_list.push_back({*ak, next_ak_state});
+                    agent_state_list.push_back({*ak, next_next_ak_state});
+                    insert_policy(agent_state_list, new_policy);
+                    merge_policy(new_policy, curr_t);
+                    return std::make_tuple(-1, std::unordered_map<double, std::vector<State*>>());
+                }
+                insert_policy(agent_state_list, new_policy);
+                return std::make_tuple(tmove, new_policy);
+            } else {
+                auto parent = Sfrom[agent.get_id()];
+                double tmove = parent->get_endT() + get_duration(agent);
+                State* next_state = new State(parent->get_v(), v, parent->get_endT(), tmove);
+                Sto[agent.get_id()] = next_state;
+                // directly insert next state because this must be the final step of push_possible
+                std::unordered_map<double, std::vector<State*>> new_policy;
+                std::vector<std::tuple<Agent, State*>> agent_state_list;
+                agent_state_list.push_back({agent, next_state});
+                insert_policy(agent_state_list, new_policy);
+                if (v == C.front() && v != Sfrom[agent.get_id()]->get_v() && ak != &pusher && ak != nullptr &&
+                    Sto[ak->get_id()] == nullptr) {
+                    const State* parent_ak = Sfrom[ak->get_id()];
+                    State* next_ak_state = new State(parent_ak->get_v(),parent_ak->get_v(),
+                                                     parent_ak->get_endT(),curr_t + get_duration(agent));
+                    Sto[ak->get_id()] = next_ak_state;
+                    State* next_next_ak_state = new State(parent_ak->get_v(),Sfrom[agent.get_id()]->get_v(),
+                                                          curr_t + get_duration(agent),
+                                                          curr_t + get_duration(agent) + get_duration(*ak));
+                    std::vector<std::tuple<Agent, State*>> agent_state_list;
+                    agent_state_list.push_back({*ak, next_ak_state});
+                    agent_state_list.push_back({*ak, next_next_ak_state});
+                    std::unordered_map<double, std::vector<State*>> new_policy;
+                    insert_policy(agent_state_list, new_policy);
+                    merge_policy(new_policy, curr_t);
+                    return std::make_tuple(-1, std::unordered_map<double, std::vector<State*>>());
+                }
+                return std::make_tuple(tmove, new_policy);
+            }
+        }
+        //which means no push_possible  stop
+        return std::make_tuple(-1, std::unordered_map<double, std::vector<State*>>());
     }
 
     int Lsrp::solve() {
@@ -965,6 +1126,7 @@ namespace raplab{
     std::unordered_map<std::string, double> Lsrp::GetStats() {
         return _stats;
     }
+
 
     /* abandoned version   The integration of push_required_possible and  pibt
     std::tuple<double, std::unordered_map<double, std::vector<State*>>> Lsrp::asynchronous_Pibt(const Agent& agent, std::vector<State*> &Sto, const std::vector<State*>& Sfrom, const std::vector<Agent*>& curr_agents, double tmin2, double curr_t, const std::vector<long>& constrain_list, bool in_pibt) {

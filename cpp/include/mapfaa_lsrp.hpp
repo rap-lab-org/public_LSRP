@@ -309,6 +309,7 @@ namespace raplab {
                              const std::vector<State*> &Sfrom, const std::vector<Agent *> &curr_agents,
                              double tmin2, double curr_t);
 
+
         virtual Agent* swap_required_possible(const std::vector<Agent *> &curr_agents,const Agent &agent,
                                               const std::vector<State*> &Sfrom,std::vector<State*> &Sto,
                                               std::vector<long> &C);
@@ -323,6 +324,15 @@ namespace raplab {
                                               const long& u,
                                               const std::vector<State*>& Sfrom,
                                               const std::vector<State*>& Sto, bool curr_A_required);
+
+        virtual int asy_pibt_swap(Agent &agent, std::vector<State*> &Sto,
+                             const std::vector<State*> &Sfrom, const std::vector<Agent *> &curr_agents,
+                             double tmin2, double curr_t);
+
+        virtual std::tuple<double, std::unordered_map<double, std::vector<State*>>> push_possible_swap
+                (Agent &agent, std::vector<State*> &Sto,
+                 const std::vector<State*> &Sfrom, const std::vector<Agent *> &curr_agents,
+                 double tmin2, double curr_t, const std::vector<long> &constrain_list, Agent &pusher);
 
 
     private:

@@ -51,19 +51,19 @@ int TestLsrp(){
     std::vector<long> starts({4,7}); // node id = y*NumX + x; e.g. (y=1)*4 + (x=0) = 4
     // the length of starts shows how many agents are there.
     std::vector<long> goals({7,4});
-    /*
     raplab::Lsrp planner;
     planner.SetGraphPtr(&g);
     std::vector<double> duration(starts.size(),1);
     planner._Solve(starts, goals, time_limit, duration);
-    */
+    /*
     raplab::Pibt planner;
     planner.SetGraphPtr(&g);
     planner._Solve(starts,goals,30,1.0, nullptr);
+    */
     auto plan = planner.GetPlan();
     auto cost = planner.GetPlanCost();
     std::cout<<" The SOC is "<<cost[0]<<std::endl;
-    //std::cout<<"The Makespan is"<<cost[1]<<std::endl;
+    std::cout<<"The Makespan is"<<cost[1]<<std::endl;
     /*
     for (auto path: plan) {
         std::cout << " path = " << path << std::endl;
