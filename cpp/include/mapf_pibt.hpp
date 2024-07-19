@@ -17,22 +17,22 @@
 #include "mapf_mstar.hpp"
 
 namespace raplab{
-#define DEBUG_PIBT 0
-#define Swap 1
+#define DEBUG_PIBT 1
+#define Swap 0
 
-struct Agent
+struct _Agent
 {
     long id;
     double priority;
     double init_priority;
     int true_id;
 
-    Agent(long id, double priority);
+    _Agent(long id, double priority);
 
     void setPriority(double pri);
     void set_trueid(int t_id) {true_id = t_id;}
 
-    bool operator<(const Agent& other) const;
+    bool operator<(const _Agent& other) const;
 
 };
 

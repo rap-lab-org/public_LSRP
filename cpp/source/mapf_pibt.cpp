@@ -17,14 +17,14 @@
 
 namespace raplab{
 
-// Agent
-Agent::Agent(long id, double priority) :id(id),priority(priority),init_priority(priority){}
+// _Agent
+_Agent::_Agent(long id, double priority) :id(id),priority(priority),init_priority(priority){}
 
-void Agent::setPriority(double pri) {
+void _Agent::setPriority(double pri) {
     priority = pri;
 }
 
-bool Agent::operator<(const Agent &other) const {
+bool _Agent::operator<(const _Agent &other) const {
     return priority < other.priority;
 }
 
@@ -71,7 +71,7 @@ int Pibt::Solve(std::vector<long> &starts, std::vector<long> &goals, double time
         }
 
         // sort agents
-        std::sort(agents_.begin(), agents_.end(), [](const Agent &a1, const Agent &a2) {
+        std::sort(agents_.begin(), agents_.end(), [](const _Agent &a1, const _Agent &a2) {
             return a1.priority > a2.priority;
         });
             // Pibt planning
@@ -91,10 +91,15 @@ int Pibt::Solve(std::vector<long> &starts, std::vector<long> &goals, double time
             return -1; // Return appropriate fail value
         }
         joint_policy_.push_back(Sto);
+        if (DEBUG_PIBT) {
+            for (long v: Sto) {
+                    std::cout<<v;}
+        }
+        
     }
 }
 
-bool Pibt::PIBT(Agent *agent1, Agent *agent2, const std::vector<long> &Sfrom, std::vector<long> &Sto) {
+bool Pibt::PIBT(_Agent *agent1, _Agent *agent2, const std::vector<long> &Sfrom, std::vector<long> &Sto) {
     if (DEBUG_PIBT) {
         if (debug_counter == 4){
             std::cout<<"do some check bro"<<std::endl;
@@ -125,7 +130,7 @@ bool Pibt::PIBT(Agent *agent1, Agent *agent2, const std::vector<long> &Sfrom, st
             continue;
         }
         Sto[agent1->id] = v;
-        Agent* a2 = mayPush(v, Sfrom, Sto);
+        _Agent* a2 = mayPush(v, Sfrom, Sto);
         if (a2 != nullptr){
             if(!PIBT(a2, agent1, Sfrom, Sto)){
                 continue;
@@ -137,7 +142,7 @@ bool Pibt::PIBT(Agent *agent1, Agent *agent2, const std::vector<long> &Sfrom, st
     return false;
 }
 
-    bool Pibt::PIBT_SWAP(Agent *agent1, Agent *agent2, const std::vector<long> &Sfrom, std::vector<long> &Sto) {
+    bool Pibt::PIBT_SWAP(_Agent *agent1, _Agent *agent2, const std::vector<long> &Sfrom, std::vector<long> &Sto) {
         if (DEBUG_PIBT) {
             if (debug_counter == 4){
                 std::cout<<"do some check bro"<<std::endl;
@@ -162,7 +167,7 @@ bool Pibt::PIBT(Agent *agent1, Agent *agent2, const std::vector<long> &Sfrom, st
                 continue;
             }
             Sto[agent1->id] = v;
-            Agent* a2 = mayPush(v, Sfrom, Sto);
+            _Agent* a2 = mayPush(v, Sfrom, Sto);
             if (a2 != nullptr){
                 if(!PIBT(a2, agent1, Sfrom, Sto)){
                     continue;
@@ -223,14 +228,14 @@ void Pibt::set_policy(const std::unordered_map<int, MstarPolicy> *policy) {
 
 // Check if the node is occupied by some agents
 bool Pibt::checkOccupied(long v, const std::vector<long> &Sto) {
-    return std::any_of(agents_.begin(), agents_.end(), [&](const Agent& a) {
+    return std::any_of(agents_.begin(), agents_.end(), [&](const _Agent& a) {
         return Sto[a.id] == v;
     });
 }
 
 // Check if any low priority agent take the place and needs to plan
-Agent *Pibt::mayPush(long v, const std::vector<long> &Sfrom, const std::vector<long> &Sto) {
-    auto it = std::find_if(agents_.begin(), agents_.end(), [&](const Agent& a) {
+_Agent *Pibt::mayPush(long v, const std::vector<long> &Sfrom, const std::vector<long> &Sto) {
+    auto it = std::find_if(agents_.begin(), agents_.end(), [&](const _Agent& a) {
         return Sfrom[a.id] == v && Sto[a.id] == -1;
     });
 
@@ -241,7 +246,7 @@ Agent *Pibt::mayPush(long v, const std::vector<long> &Sfrom, const std::vector<l
     }
 }
 
-Agent *Pibt::swap_possible_required(Agent *agent1, const std::vector<long> &Sfrom, const std::vector<long> &Sto,
+_Agent *Pibt::swap_possible_required(_Agent *agent1, const std::vector<long> &Sfrom, const std::vector<long> &Sto,
                                     std::vector<long> C) {
     if (C[0] == Sfrom[agent1->id]) {return nullptr;}
     auto aj = occupied_now(C[0],Sfrom);
@@ -260,7 +265,7 @@ Agent *Pibt::swap_possible_required(Agent *agent1, const std::vector<long> &Sfro
     return nullptr;
 }
 
-    bool Pibt::is_swap_required(Agent *pusher, Agent *puller, long v_pusher_origin, long v_puller_origin,
+    bool Pibt::is_swap_required(_Agent *pusher, _Agent *puller, long v_pusher_origin, long v_puller_origin,
                                 const std::vector<long> &Sfrom, const std::vector<long> &Sto) {
     long v_pusher = v_pusher_origin;
     long v_puller = v_puller_origin;
@@ -314,7 +319,7 @@ Agent *Pibt::swap_possible_required(Agent *agent1, const std::vector<long> &Sfro
         return false;
     }
 
-Agent *Pibt::occupied_now(long v, const std::vector<long> &Sfrom) {
+_Agent *Pibt::occupied_now(long v, const std::vector<long> &Sfrom) {
     for (int i = 0;i < agents_.size(); i++) {
         if (Sfrom[agents_[i].id] == v){
             return &agents_[i];
