@@ -23,7 +23,8 @@ add_library(${PROJECT_NAME} SHARED
         include/mapfaa_lsrp.hpp
         source/mapfaa_lsrp.cpp
         include/mapfaa_util.hpp
-        test/test_mapfaa_lsrp.cpp
+        #test/test_mapfaa_lsrp.cpp
+        test/test_movingai.cpp
         source/mapfaa_util.cpp
 )
 
@@ -34,7 +35,8 @@ foreach(test_cpp_file ${test_cpp_files})
   get_filename_component(test_cpp_name ${test_cpp_file} NAME_WE)
   #ADD_EXECUTABLE(${test_cpp_name} ${ALL_SRCS} ${test_cpp_dir}/${test_cpp_name}.cpp)
   ADD_EXECUTABLE(${test_cpp_name} ${test_cpp_dir}/${test_cpp_name}.cpp
-          test/test_mapfaa_lsrp.cpp
+          #test/test_mapfaa_lsrp.cpp
+          test/test_movingai.cpp
   )
 
   # TARGET_INCLUDE_DIRECTORIES(${test_cpp_name} PUBLIC include/common)

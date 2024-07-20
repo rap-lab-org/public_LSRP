@@ -54,6 +54,7 @@ int TestLsrp(){
     raplab::Lsrp planner;
     planner.SetGraphPtr(&g);
     std::vector<double> duration(starts.size(),1);
+    //std::vector<double> duration = {1,2};
     planner._Solve(starts, goals, time_limit, duration);
     /*
     raplab::Pibt planner;

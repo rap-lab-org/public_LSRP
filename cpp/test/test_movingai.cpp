@@ -4,6 +4,7 @@
  *******************************************/
 #include "mapf_mpmstar.hpp"
 #include "mapf_mpmstar_v2.hpp"
+#include "mapfaa_lsrp.hpp"
 // #include "lattice_xya.hpp"
 #include "debug.hpp"
 #include <iostream>
@@ -12,10 +13,12 @@
 #include "graph_io.hpp"
 
 int TestMPMstar_movingai();
+int TestLsrp();
 
 int main(){
 
-    TestMPMstar_movingai();
+    //TestMPMstar_movingai();
+    TestLsrp();
     return 0;
 };
 
@@ -63,6 +66,37 @@ int TestMPMstar_movingai(){
     for (auto path: plan) {
         std::cout << " path = " << path << std::endl;
     }*/
+    std::cout << "####### moving ai test End #######" << std::endl;
+    return 1;
+}
+
+int TestLsrp(){
+    std::cout << "####### Moving ai test Begin #######" << std::endl;
+    std::string MapPath = "C:/Users/David Zhou/Documents/GitHub/public_LSRP/data/maps/random-32-32-20.map";
+    for (int i = 1; i < 2; i+=1) {
+        std::string ScenPath = R"(C:/Users/David Zhou/Documents/GitHub/public_LSRP/data/scen/random-32-32-20-scen/random-32-32-20-random-)" + std::to_string(i) + ".scen";
+        raplab::Grid2d g;
+        std::vector<std::vector<double>> occupancy_grid;
+        raplab::LoadMap_MovingAI(MapPath, &occupancy_grid);
+        g.SetOccuGridPtr(&occupancy_grid);
+        double time_limit = 60;
+        for (int n = 100; n <= 100; n += 2) {
+            //int n = 2;
+            std::vector<long> starts;
+            std::vector<long> goals;
+            std::cout << "Agent number: " << n << std::endl;
+            raplab::LoadScenarios(ScenPath, n, &starts, &goals);
+            raplab::Lsrp planner;
+            planner.SetGraphPtr(&g);
+            std::vector<double> duration(starts.size(),1);
+            planner._Solve(starts, goals, time_limit,duration);
+            auto plan = planner.GetPlan();
+            auto cost = planner.GetPlanCost();
+            auto runtime = planner.GetRuntime();
+            std::cout << "RunTime: " << runtime << "| SOC :" << cost[0] << "| Makespan: " <<cost[1]
+                      << std::endl;
+        }
+    }
     std::cout << "####### moving ai test End #######" << std::endl;
     return 1;
 }

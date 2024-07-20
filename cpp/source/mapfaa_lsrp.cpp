@@ -525,6 +525,7 @@ namespace raplab{
             }
         }
         _soc = g;
+        return g;
     }
 
 //Return makespan cost
@@ -885,9 +886,14 @@ namespace raplab{
                 double twait;
                 std::unordered_map<double, std::vector<State*>> new_policy;
                 std::tie(twait, new_policy) = push_possible_swap(*ag, Sto, Sfrom, curr_agents, tmin2, curr_t, new_constrain_list,agent);
+                // todo a marker
                 if (twait == -1) {
-                    // not push_possible  we go with
-                    continue;
+                    if (Sto[agent.get_id()] != nullptr) {
+                        return true;
+                    } else {
+                        // not push_possible  we go with
+                        continue;
+                    }
                 }
 
                 auto parent = Sfrom[agent.get_id()];
@@ -1017,7 +1023,6 @@ namespace raplab{
                 std::unordered_map<double, std::vector<State*>> new_policy;
                 std::vector<std::tuple<Agent, State*>> agent_state_list;
                 agent_state_list.push_back({agent, next_state});
-                insert_policy(agent_state_list, new_policy);
                 if (v == C.front() && v != Sfrom[agent.get_id()]->get_v() && ak != &pusher && ak != nullptr &&
                     Sto[ak->get_id()] == nullptr) {
                     const State* parent_ak = Sfrom[ak->get_id()];
@@ -1027,14 +1032,13 @@ namespace raplab{
                     State* next_next_ak_state = new State(parent_ak->get_v(),Sfrom[agent.get_id()]->get_v(),
                                                           curr_t + get_duration(agent),
                                                           curr_t + get_duration(agent) + get_duration(*ak));
-                    std::vector<std::tuple<Agent, State*>> agent_state_list;
                     agent_state_list.push_back({*ak, next_ak_state});
                     agent_state_list.push_back({*ak, next_next_ak_state});
-                    std::unordered_map<double, std::vector<State*>> new_policy;
                     insert_policy(agent_state_list, new_policy);
                     merge_policy(new_policy, curr_t);
                     return std::make_tuple(-1, std::unordered_map<double, std::vector<State*>>());
                 }
+                insert_policy(agent_state_list, new_policy);
                 return std::make_tuple(tmove, new_policy);
             }
         }
@@ -1052,17 +1056,17 @@ namespace raplab{
         auto start_time = std::chrono::steady_clock::now();
         if(Debug_asyPibt){std::cout<<"loop begin"<<std::endl;}
         while (true) {
-            /* Todo  unindex the time limit before we finally put in use
             // time limit check
             auto current_time = std::chrono::steady_clock::now();
             auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(current_time - start_time);
             if (elapsed_time > timeout_limit) {
+                std::chrono::duration<double> duration = current_time - start_time;
+                _runtime =  duration.count();  // 获取时间差的秒数作为double
                 //std::cerr << "Timeout limit exceeded (30 seconds). Aborting.\n";
                 // Handle timeout failure, return an appropriate failure state or throw an exception
                 // For demonstration, returning an empty policy
                 return {};
             }
-             */
 
 
             // get the current t
@@ -1077,7 +1081,11 @@ namespace raplab{
 
             if (reach_Goal()) {
                 if(Debug_asyPibt){std::cout<<"Solution found"<<std::endl;}
+                std::cout<<"Solution found"<<std::endl;
                 //add_lastStep();
+                auto current_time = std::chrono::steady_clock::now();
+                std::chrono::duration<double> duration = current_time - start_time;
+                _runtime = duration.count();
                 get_makespan();
                 get_Soc();
                 extract_policy();
@@ -1102,7 +1110,11 @@ namespace raplab{
             // Generate path
             for (auto& agent : curr_agents) {
                 if (Sto[agent->get_id()] == nullptr) {
-                    asy_pibt(*agent, Sto, Sfrom, curr_agents, t2, t);
+                    if (Swap) {
+                        asy_pibt_swap(*agent, Sto,Sfrom, curr_agents,t2,t);
+                    } else {
+                        asy_pibt(*agent, Sto, Sfrom, curr_agents, t2, t);
+                    }
                 }
             }
 

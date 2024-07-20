@@ -22,10 +22,10 @@
 
 namespace raplab {
 
-#define Debug_asyPibt 1
+#define Debug_asyPibt 0
 #define Makespan 0
 #define Soc 0
-#define Distance_sort 1
+#define Distance_sort 0
 #define Duration_sort 1
 #define Swap 1
     /*
@@ -290,6 +290,8 @@ namespace raplab {
 
         virtual TimePathSet GetPlan(long nid=-1) override ;
 
+        virtual double GetRuntime(long nid = -1) {return _runtime;}
+
         virtual int Solve(std::vector<long>& starts, std::vector<long>& goals, double time_limit, double eps) override ;
 
         virtual std::unordered_map<std::string, double> GetStats() override ;
@@ -374,6 +376,7 @@ namespace raplab {
         double _soc;
         double _makespan;
         double _time_limit;
+        double _runtime;
         std::mt19937 _rng;
         std::unordered_map<std::string, double> _stats;
         TimePathSet _paths;
