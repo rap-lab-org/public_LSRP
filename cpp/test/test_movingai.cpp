@@ -72,16 +72,17 @@ int TestMPMstar_movingai(){
 
 int TestLsrp(){
     std::cout << "####### Moving ai test Begin #######" << std::endl;
-    std::string MapPath = "C:/Users/David Zhou/Documents/GitHub/public_LSRP/data/maps/random-32-32-20.map";
+    std::string MapPath = "C:/Users/David Zhou/Documents/GitHub/public_LSRP/data/maps/warehouse-10-20-10-2-1.map";
     for (int i = 1; i < 2; i+=1) {
-        std::string ScenPath = R"(C:/Users/David Zhou/Documents/GitHub/public_LSRP/data/scen/random-32-32-20-scen/random-32-32-20-random-)" + std::to_string(i) + ".scen";
+        std::string ScenPath = R"(C:/Users/David Zhou/Documents/GitHub/public_LSRP/data/scen/warehouse-161-63-scen-random/warehouse-10-20-10-2-1-random-)" + std::to_string(i) + ".scen";
         raplab::Grid2d g;
         std::vector<std::vector<double>> occupancy_grid;
         raplab::LoadMap_MovingAI(MapPath, &occupancy_grid);
         g.SetOccuGridPtr(&occupancy_grid);
         double time_limit = 60;
-        for (int n = 100; n <= 100; n += 2) {
+        for (int n = 10; n <= 20; n += 2) {
             //int n = 2;
+
             std::vector<long> starts;
             std::vector<long> goals;
             std::cout << "Agent number: " << n << std::endl;
@@ -91,10 +92,12 @@ int TestLsrp(){
             std::vector<double> duration(starts.size(),1);
             planner._Solve(starts, goals, time_limit,duration);
             auto plan = planner.GetPlan();
-            auto cost = planner.GetPlanCost();
+            auto soc = planner.re_soc();
+            auto makespan = planner.re_makespan();
             auto runtime = planner.GetRuntime();
-            std::cout << "RunTime: " << runtime << "| SOC :" << cost[0] << "| Makespan: " <<cost[1]
+            std::cout << "RunTime: " << runtime << "s| SOC :" << soc << "| Makespan: " <<makespan
                       << std::endl;
+            std::cout<<n<<std::endl;
         }
     }
     std::cout << "####### moving ai test End #######" << std::endl;

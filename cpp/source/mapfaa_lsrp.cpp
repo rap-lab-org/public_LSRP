@@ -126,14 +126,8 @@ namespace raplab{
 
     CostVec Lsrp::GetPlanCost(long nid) {
         CostVec out(_graph->CostDim(), 0);
-        if (Soc && !Makespan) {
-            out[0] = re_soc();
-        } else if (!Soc && Makespan){
-            out[0] = re_makespan();
-        } else {
-            out[0] = re_soc();
-            out[1] = re_makespan();
-        }
+        out[0] = re_soc();
+        out[1] = re_makespan();
         return out;
     }
 
@@ -888,12 +882,15 @@ namespace raplab{
                 std::tie(twait, new_policy) = push_possible_swap(*ag, Sto, Sfrom, curr_agents, tmin2, curr_t, new_constrain_list,agent);
                 // todo a marker
                 if (twait == -1) {
+                    /*
                     if (Sto[agent.get_id()] != nullptr) {
                         return true;
                     } else {
                         // not push_possible  we go with
+
                         continue;
-                    }
+                    }*/
+                    continue;
                 }
 
                 auto parent = Sfrom[agent.get_id()];
@@ -998,6 +995,7 @@ namespace raplab{
                 std::vector<std::tuple<Agent, State*>> agent_state_list;
                 agent_state_list.push_back({agent, next_state});
                 agent_state_list.push_back({agent, next_next_state});
+                /*
                 if (v == C.front() && v != Sfrom[agent.get_id()]->get_v() && ak != &pusher && ak != nullptr &&
                     Sto[ak->get_id()] == nullptr) {
                     const State* parent_ak = Sfrom[ak->get_id()];
@@ -1012,6 +1010,7 @@ namespace raplab{
                     merge_policy(new_policy, curr_t);
                     return std::make_tuple(-1, std::unordered_map<double, std::vector<State*>>());
                 }
+                */
                 insert_policy(agent_state_list, new_policy);
                 return std::make_tuple(tmove, new_policy);
             } else {
@@ -1023,6 +1022,7 @@ namespace raplab{
                 std::unordered_map<double, std::vector<State*>> new_policy;
                 std::vector<std::tuple<Agent, State*>> agent_state_list;
                 agent_state_list.push_back({agent, next_state});
+                /*
                 if (v == C.front() && v != Sfrom[agent.get_id()]->get_v() && ak != &pusher && ak != nullptr &&
                     Sto[ak->get_id()] == nullptr) {
                     const State* parent_ak = Sfrom[ak->get_id()];
@@ -1037,7 +1037,7 @@ namespace raplab{
                     insert_policy(agent_state_list, new_policy);
                     merge_policy(new_policy, curr_t);
                     return std::make_tuple(-1, std::unordered_map<double, std::vector<State*>>());
-                }
+                } */
                 insert_policy(agent_state_list, new_policy);
                 return std::make_tuple(tmove, new_policy);
             }
