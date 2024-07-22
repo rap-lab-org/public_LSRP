@@ -11,14 +11,20 @@
 #include <string>
 #include <unordered_map>
 #include "graph_io.hpp"
+#include <vector>
+#include <numeric>
+#include <iomanip> // Include this header for std::fixed and std::setprecision
+
 
 int TestMPMstar_movingai();
+int Test_Lsrp_movingai();
 int TestLsrp();
 
 int main(){
 
     //TestMPMstar_movingai();
-    TestLsrp();
+    //TestLsrp();
+    Test_Lsrp_movingai();
     return 0;
 };
 
@@ -73,14 +79,14 @@ int TestMPMstar_movingai(){
 int TestLsrp(){
     std::cout << "####### Moving ai test Begin #######" << std::endl;
     std::string MapPath = "C:/Users/David Zhou/Documents/GitHub/public_LSRP/data/maps/warehouse-10-20-10-2-1.map";
-    for (int i = 1; i < 2; i+=1) {
+    for (int i = 1; i < 3; i+=1) {
         std::string ScenPath = R"(C:/Users/David Zhou/Documents/GitHub/public_LSRP/data/scen/warehouse-161-63-scen-random/warehouse-10-20-10-2-1-random-)" + std::to_string(i) + ".scen";
         raplab::Grid2d g;
         std::vector<std::vector<double>> occupancy_grid;
         raplab::LoadMap_MovingAI(MapPath, &occupancy_grid);
         g.SetOccuGridPtr(&occupancy_grid);
         double time_limit = 60;
-        for (int n = 10; n <= 20; n += 2) {
+        for (int n = 1; n <= 10; n += 5) {
             //int n = 2;
 
             std::vector<long> starts;
@@ -97,9 +103,64 @@ int TestLsrp(){
             auto runtime = planner.GetRuntime();
             std::cout << "RunTime: " << runtime << "s| SOC :" << soc << "| Makespan: " <<makespan
                       << std::endl;
-            std::cout<<n<<std::endl;
         }
     }
     std::cout << "####### moving ai test End #######" << std::endl;
+    return 1;
+}
+
+
+int Test_Lsrp_movingai() {
+    std::cout << "####### Moving ai test Begin #######" << std::endl;
+    std::string MapPath = "C:/Users/David Zhou/Documents/GitHub/public_LSRP/data/maps/warehouse-10-20-10-2-1.map";
+
+    for (int n = 586; n <= 701; n += 5) {
+        int success_count = 0;
+        double total_runtime = 0;
+        double total_soc = 0;
+        double total_makespan = 0;
+
+        for (int i = 1; i <= 25; ++i) {
+            std::string ScenPath = R"(C:/Users/David Zhou/Documents/GitHub/public_LSRP/data/scen/warehouse-161-63-scen-random/warehouse-10-20-10-2-1-random-)" + std::to_string(i) + ".scen";
+            raplab::Grid2d g;
+            std::vector<std::vector<double>> occupancy_grid;
+            raplab::LoadMap_MovingAI(MapPath, &occupancy_grid);
+            g.SetOccuGridPtr(&occupancy_grid);
+            double time_limit = 30;
+
+            std::vector<long> starts;
+            std::vector<long> goals;
+            raplab::LoadScenarios(ScenPath, n, &starts, &goals);
+            raplab::Lsrp planner;
+            planner.SetGraphPtr(&g);
+            std::vector<double> duration(starts.size(), 1);
+            planner._Solve(starts, goals, time_limit, duration);
+            auto plan = planner.GetPlan();
+            auto soc = planner.re_soc();
+            auto makespan = planner.re_makespan();
+            auto runtime = planner.GetRuntime();
+
+            if (runtime <= 30) {
+                ++success_count;
+                total_runtime += runtime;
+                total_soc += soc;
+                total_makespan += makespan;
+            }
+        }
+
+        double success_rate = (success_count / 25.0) * 100;
+        double average_runtime = success_count > 0 ? total_runtime / success_count : 0;
+        double average_soc = success_count > 0 ? total_soc / success_count : 0;
+        double average_makespan = success_count > 0 ? total_makespan / success_count : 0;
+
+        std::cout << "Agent Count: " << n << std::endl;
+        std::cout << std::fixed << std::setprecision(6); // Use fixed format and set precision to 2 decimal places
+        std::cout << "Success Rate: " << success_rate << "%" << std::endl;
+        std::cout << "Average Runtime: " << average_runtime << " s" << std::endl;
+        std::cout << "Average Soc: " << average_soc << std::endl;
+        std::cout << "Average Makespan: " << average_makespan << std::endl;
+    }
+
+    std::cout << "####### Moving ai test End #######" << std::endl;
     return 1;
 }

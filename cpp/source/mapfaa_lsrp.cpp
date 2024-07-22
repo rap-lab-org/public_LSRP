@@ -139,6 +139,7 @@ namespace raplab{
 
     int
     Lsrp::_Solve(std::vector<long> &starts, std::vector<long> &goals, double time_limit, std::vector<double> duration) {
+        if (starts.empty()) {return 1;}
         if(Debug_asyPibt) {std::cout<<"First layer solve arrives"<<std::endl;}
         _Sinit = starts;
         _Send = goals;
@@ -724,9 +725,10 @@ namespace raplab{
             v_pusher = v_puller;
             v_puller = next;
         }
-        return (get_h(puller,v_pusher)< get_h(puller,v_puller)) &&
-        (get_h(pusher,v_pusher) == 0
-        || get_h(pusher,v_puller)< get_h(pusher,v_pusher));
+        bool condition1 = (get_h(puller,v_pusher)< get_h(puller,v_puller));
+        bool condition2 = (get_h(pusher,v_pusher) == 0
+                           || get_h(pusher,v_puller)< get_h(pusher,v_pusher));
+        return condition1 && condition2;
         // check if  when reach the dead end, the distance of pusher and puller to their goal are lowest among two of them
     }
 
@@ -1081,7 +1083,7 @@ namespace raplab{
 
             if (reach_Goal()) {
                 if(Debug_asyPibt){std::cout<<"Solution found"<<std::endl;}
-                std::cout<<"Solution found"<<std::endl;
+                //std::cout<<"Solution found"<<std::endl;
                 //add_lastStep();
                 auto current_time = std::chrono::steady_clock::now();
                 std::chrono::duration<double> duration = current_time - start_time;

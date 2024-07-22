@@ -275,9 +275,11 @@ _Agent *Pibt::swap_possible_required(_Agent *agent1, const std::vector<long> &Sf
         v_pusher = v_puller;
         v_puller = tmp;
     }
-        return (policy_puller.H(v_pusher) < policy_puller.H(v_puller)) &&
-                (policy_pusher.H(v_pusher)[0] == 0 ||
-                policy_pusher.H(v_puller) < policy_pusher.H(v_pusher));
+        bool condition1 = (policy_puller.H(v_pusher) < policy_puller.H(v_puller));
+        bool condition2 = (policy_pusher.H(v_pusher)[0] == 0 ||
+                           policy_pusher.H(v_puller) < policy_pusher.H(v_pusher));
+        return condition1 &&
+                condition2;
     }
 
     bool Pibt::is_swap_possible(long v_pusher_origin, long v_puller_origin, const std::vector<long> &Sfrom,
