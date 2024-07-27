@@ -133,6 +133,19 @@ namespace raplab{
 
     int Lsrp::Solve(std::vector<long> &starts, std::vector<long> &goals, double time_limit, double eps)
     {
+        if (starts.empty()) {return 1;}
+        if(Debug_asyPibt) {std::cout<<"First layer solve arrives"<<std::endl;}
+        _Sinit = starts;
+        _Send = goals;
+        _dis_table = generate_distable();
+        if(Debug_asyPibt) {std::cout<<"Dis_table successfully generated"<<std::endl;}
+        set_agents();
+        if(Debug_asyPibt) {std::cout<<"Agent set"<<std::endl;}
+        _policy = set_initPolicy();
+        if(Debug_asyPibt) {std::cout<<"POlicy generated"<<std::endl;}
+        _min_duration = *std::min_element(_duration.begin(), _duration.end());
+        _time_limit = time_limit;
+        solve();
         return 1;
         // useless input, fake function
     }
@@ -208,26 +221,31 @@ namespace raplab{
         for (int i = 0; i < _Sinit.size(); ++i) {
             _agents.push_back(new Agent(static_cast<int>(i), _Sinit[i], _Send[i]));
         }
+        if (Sort) {
+            std::vector<std::pair<int, double>> tmp(_duration.size());
+            // sort by duration
+            if (Duration_sort) {
+                for (size_t i = 0; i < _duration.size(); ++i) {
+                    tmp[i] = {i, _duration[i]};
+                }
+            } else {
+                // sort by distance
+                for (size_t i = 0; i < _duration.size(); ++i) {
+                    tmp[i] = {i, double(_dis_table[i][_Sinit[i]])};
+                }
+            }
 
-        std::vector<std::pair<int, double>> tmp(_duration.size());
-        // sort by duration
-        if (Duration_sort) {
-            for (size_t i = 0; i < _duration.size(); ++i) {
-                tmp[i] = {i, _duration[i]};
+            std::sort(tmp.begin(), tmp.end(), [](const std::pair<int, double> &a, const std::pair<int, double> &b) {
+                return a.second < b.second;
+            });
+
+            for (size_t index = 0; index < tmp.size(); ++index) {
+                _agents[tmp[index].first]->set_init_priority(index * gap);
             }
         } else {
-            // sort by distance
-            for (size_t i = 0; i < _duration.size(); ++i) {
-                tmp[i] = {i, double(_dis_table[i][_Sinit[i]])};
+            for (int i = 0; i<_agents.size(); i++) {
+                _agents[i]->set_init_priority(i * gap);
             }
-        }
-
-        std::sort(tmp.begin(), tmp.end(), [](const std::pair<int, double>& a, const std::pair<int, double>& b) {
-            return a.second < b.second;
-        });
-
-        for (size_t index = 0; index < tmp.size(); ++index) {
-            _agents[tmp[index].first]->set_init_priority(index * gap);
         }
     }
 
