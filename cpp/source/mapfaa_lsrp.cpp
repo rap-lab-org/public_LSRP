@@ -800,7 +800,7 @@ namespace raplab{
         }
     }
 
-    int Lsrp::asy_pibt(const Agent &agent, std::vector<State *> &Sto, const std::vector<State *> &Sfrom,
+    int Lsrp::asy_pibt(Agent &agent, std::vector<State *> &Sto, const std::vector<State *> &Sfrom,
                        const std::vector<Agent *> &curr_agents, double tmin2, double curr_t) {
         //abandoned version   The integration of push_required_possible and  pibt
         std::vector<long> C = {agent.get_curr()->get_v()};
@@ -811,16 +811,16 @@ namespace raplab{
         std::sort(C.begin(), C.end(), [&](const long& coord1, const long& coord2) {
             return get_h(agent, coord1) < get_h(agent, coord2);
         });
-        //if (Swap) {
-            /** Swap part
-             *
-             */
-            // if swap the reverse the C
-            auto ak = swap_required_possible(curr_agents,agent,Sfrom,Sto,C);
-            if (ak != nullptr) {
-                std::reverse(C.begin(), C.end());
+
+        if (highest_pri_agents(agent)) {
+            long current_v = agent.get_curr()->get_v();
+            auto it = std::find(C.begin(), C.end(), current_v);
+            if (it != C.end() && std::distance(C.begin(), it) != 1) {
+                C.erase(it); // 移除当前节点
+                C.insert(C.begin() + 1, current_v); // 插入到第二个位置 } }
             }
-        //}
+        }
+
         for (const auto& v : C) {
             if (check_Occupied(agent, v, Sto, {}, false)) {
                 continue;
