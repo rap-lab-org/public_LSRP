@@ -27,131 +27,9 @@ namespace raplab {
 #define Soc 0
 #define Distance_sort 0
 #define Duration_sort 1
-#define Sort 1
-#define Swap 1
-    /*
-    struct nullopt_t {
-        constexpr nullopt_t(int) {}  // 构造函数用于禁止隐式转换
-    };
-
-    constexpr nullopt_t nullopt{0};  // 定义一个全局的 nullopt 常量
-
-
-    template <typename T>
-    class Optional {
-    public:
-        Optional() : has_value(false) {}
-
-        Optional(nullopt_t) : has_value(false) {}
-
-        Optional(const T& value) : has_value(true) {
-            new (&storage) T(value); // 在预分配的内存中构造 T 对象
-        }
-
-        Optional(T&& value) : has_value(true) {
-            new (&storage) T(std::move(value)); // 在预分配的内存中构造 T 对象
-        }
-
-        Optional(const Optional& other) : has_value(other.has_value) {
-            if (other.has_value) {
-                new (&storage) T(*other); // 复制构造
-            }
-        }
-
-        Optional(Optional&& other) noexcept : has_value(other.has_value) {
-            if (other.has_value) {
-                new (&storage) T(std::move(*other)); // 移动构造
-            }
-        }
-
-        Optional& operator=(const Optional& other) {
-            if (this != &other) {
-                if (has_value) {
-                    reinterpret_cast<T*>(&storage)->~T(); // 销毁旧值
-                }
-                has_value = other.has_value;
-                if (other.has_value) {
-                    new (&storage) T(*other); // 复制构造
-                }
-            }
-            return *this;
-        }
-
-        Optional& operator=(Optional&& other) noexcept {
-            if (this != &other) {
-                if (has_value) {
-                    reinterpret_cast<T*>(&storage)->~T(); // 销毁旧值
-                }
-                has_value = other.has_value;
-                if (other.has_value) {
-                    new (&storage) T(std::move(*other)); // 移动构造
-                }
-            }
-            return *this;
-        }
-
-        Optional& operator=(nullopt_t) {
-            if (has_value) {
-                reinterpret_cast<T*>(&storage)->~T(); // 销毁旧值
-                has_value = false;
-            }
-            return *this;
-        }
-
-        ~Optional() {
-            if (has_value) {
-                reinterpret_cast<T*>(&storage)->~T(); // 销毁值
-            }
-        }
-
-        explicit operator bool() const {
-            return has_value;
-        }
-
-        T& operator*() {
-            assert(has_value);
-            return *reinterpret_cast<T*>(&storage);
-        }
-
-        const T& operator*() const {
-            assert(has_value);
-            return *reinterpret_cast<const T*>(&storage);
-        }
-
-        T* operator->() {
-            assert(has_value);
-            return reinterpret_cast<T*>(&storage);
-        }
-
-        const T* operator->() const {
-            assert(has_value);
-            return reinterpret_cast<const T*>(&storage);
-        }
-
-        void reset() {
-            if (has_value) {
-                reinterpret_cast<T*>(&storage)->~T();
-                has_value = false;
-            }
-        }
-
-        const T& value() const {
-            assert(has_value);
-            return *reinterpret_cast<const T*>(&storage);
-        }
-
-        T& value() {
-            assert(has_value);
-            return *reinterpret_cast<T*>(&storage);
-        }
-
-        bool has_value;
-
-    private:
-        alignas(T) unsigned char storage[sizeof(T)];
-
-    };
-     */
+#define Sort 0
+#define Swap 0
+#define property 1
 
     struct State {
     public:
@@ -338,6 +216,8 @@ namespace raplab {
                 (Agent &agent, std::vector<State*> &Sto,
                  const std::vector<State*> &Sfrom, const std::vector<Agent *> &curr_agents,
                  double tmin2, double curr_t, const std::vector<long> &constrain_list, Agent &pusher);
+
+        virtual bool highest_pri_agents(Agent &agent);
 
 
     private:

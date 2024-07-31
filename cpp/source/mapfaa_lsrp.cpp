@@ -884,89 +884,98 @@ namespace raplab{
         if (ak != nullptr) {
             std::reverse(C.begin(), C.end());
         }
-        //}
-        for (const auto& v : C) {
-            if (check_Occupied(agent, v, Sto, {}, false)) {
-                continue;
+
+        if (highest_pri_agents(agent)) {
+            long current_v = agent.get_curr()->get_v();
+            auto it = std::find(C.begin(), C.end(), current_v);
+            if (it != C.end() && std::distance(C.begin(), it) != 1) {
+                C.erase(it); // 移除当前节点
+                C.insert(C.begin() + 1, current_v); // 插入到第二个位置 } }
             }
+        }
 
-            auto ag_opt = push_required(curr_agents, agent, v, Sfrom, Sto);
-            if (ag_opt != nullptr) {
-                auto ag = ag_opt;
-
-                std::vector<long> new_constrain_list;
-                new_constrain_list = {Sfrom[agent.get_id()]->get_v()};
-
-                double twait;
-                std::unordered_map<double, std::vector<State*>> new_policy;
-                std::tie(twait, new_policy) = push_possible_swap(*ag, Sto, Sfrom, curr_agents, tmin2, curr_t, new_constrain_list,agent);
-                // todo a marker
-                if (twait == -1) {
-                    /*
-                    if (Sto[agent.get_id()] != nullptr) {
-                        return true;
-                    } else {
-                        // not push_possible  we go with
-
-                        continue;
-                    }*/
+            for (const auto& v : C) {
+                if (check_Occupied(agent, v, Sto, {}, false)) {
                     continue;
                 }
 
-                auto parent = Sfrom[agent.get_id()];
-                State* next_state = new State(parent->get_v(), parent->get_v(), parent->get_endT(), twait);
-                Sto[agent.get_id()] = next_state;
-                // push possible so we wait here
-                double tmove = twait + get_duration(agent);
-                State* next_next_state = new State(parent->get_v(), v, twait, tmove);
-                // at next timestamp, go to the push_required agent's place
-                std::vector<std::tuple<Agent, State*>> agent_state_list;
-                agent_state_list.push_back({agent, next_state});
-                agent_state_list.push_back({agent, next_next_state});
-                /** Swap part
-                 *
-                 */
-                //if (Swap) {
-                if (v == C.front() && v != Sfrom[agent.get_id()]->get_v() && ak != nullptr &&
-                    Sto[ak->get_id()] == nullptr) {
-                    const State* parent_ak = Sfrom[ak->get_id()];
-                    State* next_ak_state = new State(parent_ak->get_v(),parent_ak->get_v(),
-                                                     parent_ak->get_endT(),tmove);
-                    Sto[ak->get_id()] = next_ak_state;
-                    State* next_next_ak_state = new State(parent_ak->get_v(),Sfrom[agent.get_id()]->get_v(),
-                                                          tmove,tmove + get_duration(*ak));
-                    agent_state_list.push_back({*ak, next_ak_state});
-                    agent_state_list.push_back({*ak, next_next_ak_state});
-                }
-                //}
-                insert_policy(agent_state_list, new_policy);
-                merge_policy(new_policy, curr_t);
-                return 1;
-            } else {
-                State* next_state = new State(generate_state(v, agent, Sfrom, &tmin2));
-                Sto[agent.get_id()] = next_state;
-                if (v == C.front() && v != Sfrom[agent.get_id()]->get_v() && ak != nullptr &&
-                    Sto[ak->get_id()] == nullptr) {
-                    const State* parent_ak = Sfrom[ak->get_id()];
-                    State* next_ak_state = new State(parent_ak->get_v(),parent_ak->get_v(),
-                                                     parent_ak->get_endT(),curr_t + get_duration(agent));
-                    Sto[ak->get_id()] = next_ak_state;
-                    State* next_next_ak_state = new State(parent_ak->get_v(),Sfrom[agent.get_id()]->get_v(),
-                                                          curr_t + get_duration(agent),
-                                                          curr_t + get_duration(agent) + get_duration(*ak));
-                    std::vector<std::tuple<Agent, State*>> agent_state_list;
-                    agent_state_list.push_back({*ak, next_ak_state});
-                    agent_state_list.push_back({*ak, next_next_ak_state});
+                auto ag_opt = push_required(curr_agents, agent, v, Sfrom, Sto);
+                if (ag_opt != nullptr) {
+                    auto ag = ag_opt;
+
+                    std::vector<long> new_constrain_list;
+                    new_constrain_list = {Sfrom[agent.get_id()]->get_v()};
+
+                    double twait;
                     std::unordered_map<double, std::vector<State*>> new_policy;
+                    std::tie(twait, new_policy) = push_possible_swap(*ag, Sto, Sfrom, curr_agents, tmin2, curr_t, new_constrain_list,agent);
+                    // todo a marker
+                    if (twait == -1) {
+                        /*
+                        if (Sto[agent.get_id()] != nullptr) {
+                        return true;
+                        } else {
+                        // not push_possible  we go with
+
+                        continue;
+                        }*/
+                        continue;
+                    }
+
+                    auto parent = Sfrom[agent.get_id()];
+                    State* next_state = new State(parent->get_v(), parent->get_v(), parent->get_endT(), twait);
+                    Sto[agent.get_id()] = next_state;
+                    // push possible so we wait here
+                    double tmove = twait + get_duration(agent);
+                    State* next_next_state = new State(parent->get_v(), v, twait, tmove);
+                    // at next timestamp, go to the push_required agent's place
+                    std::vector<std::tuple<Agent, State*>> agent_state_list;
+                    agent_state_list.push_back({agent, next_state});
+                    agent_state_list.push_back({agent, next_next_state});
+                    /** Swap part
+                    *
+                    */
+                    //if (Swap) {
+                    if (v == C.front() && v != Sfrom[agent.get_id()]->get_v() && ak != nullptr &&
+                    Sto[ak->get_id()] == nullptr) {
+                        const State* parent_ak = Sfrom[ak->get_id()];
+                        State* next_ak_state = new State(parent_ak->get_v(),parent_ak->get_v(),
+                                                         parent_ak->get_endT(),tmove);
+                        Sto[ak->get_id()] = next_ak_state;
+                        State* next_next_ak_state = new State(parent_ak->get_v(),Sfrom[agent.get_id()]->get_v(),
+                                                              tmove,tmove + get_duration(*ak));
+                        agent_state_list.push_back({*ak, next_ak_state});
+                        agent_state_list.push_back({*ak, next_next_ak_state});
+                    }
+                    //}
                     insert_policy(agent_state_list, new_policy);
                     merge_policy(new_policy, curr_t);
+                    return 1;
+                } else {
+                    State* next_state = new State(generate_state(v, agent, Sfrom, &tmin2));
+                    Sto[agent.get_id()] = next_state;
+                    if (v == C.front() && v != Sfrom[agent.get_id()]->get_v() && ak != nullptr &&
+                    Sto[ak->get_id()] == nullptr) {
+                        const State* parent_ak = Sfrom[ak->get_id()];
+                        State* next_ak_state = new State(parent_ak->get_v(),parent_ak->get_v(),
+                                                         parent_ak->get_endT(),curr_t + get_duration(agent));
+                        Sto[ak->get_id()] = next_ak_state;
+                        State* next_next_ak_state = new State(parent_ak->get_v(),Sfrom[agent.get_id()]->get_v(),
+                                                              curr_t + get_duration(agent),
+                                                              curr_t + get_duration(agent) + get_duration(*ak));
+                        std::vector<std::tuple<Agent, State*>> agent_state_list;
+                        agent_state_list.push_back({*ak, next_ak_state});
+                        agent_state_list.push_back({*ak, next_next_ak_state});
+                        std::unordered_map<double, std::vector<State*>> new_policy;
+                        insert_policy(agent_state_list, new_policy);
+                        merge_policy(new_policy, curr_t);
+                    }
+                    return 1;
                 }
-                return 1;
             }
-        }
-        // won't arrive here, since no agent will pre occupied another agents at current place
-        return 0;
-    }
+            // won't arrive here, since no agent will pre occupied another agents at current place
+            return 0;
+            }
 
     std::tuple<double, std::unordered_map<double, std::vector<State *>>>
     Lsrp::push_possible_swap(Agent &agent, std::vector<State *> &Sto, const std::vector<State *> &Sfrom,
@@ -1157,6 +1166,14 @@ namespace raplab{
 
     std::unordered_map<std::string, double> Lsrp::GetStats() {
         return _stats;
+    }
+
+    bool Lsrp::highest_pri_agents(Agent &agent) {
+        double pri = agent.get_priority();
+        for (int i = 0; i < _agents.size(); i++) {
+            if (_agents[i]->get_priority() > pri) {return false;}
+        }
+        return true;
     }
 
 
