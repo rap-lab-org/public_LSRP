@@ -27,7 +27,7 @@ namespace raplab {
 #define Soc 0
 #define Distance_sort 0
 #define Duration_sort 1
-#define Sort 0
+#define Sort 1
 #define Swap 0
 #define property 1
 
