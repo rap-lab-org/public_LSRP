@@ -188,7 +188,7 @@ namespace raplab {
         push_required(const std::vector<Agent *> &curr_agents, const Agent &agent, const long &v,
                       const std::vector<State*> &Sfrom, const std::vector<State*> &Sto) const;
 
-        virtual int asy_pibt(Agent &agent, std::vector<State*> &Sto,
+        virtual int _lsrp(Agent &agent, std::vector<State*> &Sto,
                              const std::vector<State*> &Sfrom, const std::vector<Agent *> &curr_agents,
                              double tmin2, double curr_t);
 
@@ -208,7 +208,7 @@ namespace raplab {
                                               const std::vector<State*>& Sfrom,
                                               const std::vector<State*>& Sto, bool curr_A_required);
 
-        virtual int asy_pibt_swap(Agent &agent, std::vector<State*> &Sto,
+        virtual int _lsrp_swap(Agent &agent, std::vector<State*> &Sto,
                              const std::vector<State*> &Sfrom, const std::vector<Agent *> &curr_agents,
                              double tmin2, double curr_t);
 

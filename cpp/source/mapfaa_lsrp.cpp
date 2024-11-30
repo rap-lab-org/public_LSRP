@@ -800,7 +800,7 @@ namespace raplab{
         }
     }
 
-    int Lsrp::asy_pibt(Agent &agent, std::vector<State *> &Sto, const std::vector<State *> &Sfrom,
+    int Lsrp::_lsrp(Agent &agent, std::vector<State *> &Sto, const std::vector<State *> &Sfrom,
                        const std::vector<Agent *> &curr_agents, double tmin2, double curr_t) {
         //abandoned version   The integration of push_required_possible and  pibt
         std::vector<long> C = {agent.get_curr()->get_v()};
@@ -864,7 +864,7 @@ namespace raplab{
         return 0;
     }
 
-    int Lsrp::asy_pibt_swap(Agent &agent, std::vector<State *> &Sto, const std::vector<State *> &Sfrom,
+    int Lsrp::_lsrp_swap(Agent &agent, std::vector<State *> &Sto, const std::vector<State *> &Sfrom,
                        const std::vector<Agent *> &curr_agents, double tmin2, double curr_t) {
         //abandoned version   The integration of push_required_possible and  pibt
         std::vector<long> C = {agent.get_curr()->get_v()};
@@ -1140,9 +1140,9 @@ namespace raplab{
             for (auto& agent : curr_agents) {
                 if (Sto[agent->get_id()] == nullptr) {
                     if (Swap) {
-                        asy_pibt_swap(*agent, Sto,Sfrom, curr_agents,t2,t);
+                        _lsrp_swap(*agent, Sto,Sfrom, curr_agents,t2,t);
                     } else {
-                        asy_pibt(*agent, Sto, Sfrom, curr_agents, t2, t);
+                        _lsrp(*agent, Sto, Sfrom, curr_agents, t2, t);
                     }
                 }
             }
