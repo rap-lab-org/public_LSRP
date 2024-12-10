@@ -28,8 +28,9 @@ namespace raplab {
 #define Distance_sort 0
 #define Duration_sort 1
 #define Sort 1
-#define Swap 0
+#define Swap 1
 #define property 1
+#define A_lsrp_debug 0
 
     struct State {
     public:
@@ -219,6 +220,8 @@ namespace raplab {
 
         virtual bool highest_pri_agents(Agent &agent);
 
+        void print_path();
+
 
     private:
 
@@ -260,7 +263,7 @@ namespace raplab {
         double _makespan;
         double _time_limit;
         double _runtime;
-        std::mt19937 _rng;
+        std::mt19937 _rng = std::mt19937(0);
         std::unordered_map<std::string, double> _stats;
         TimePathSet _paths;
     };

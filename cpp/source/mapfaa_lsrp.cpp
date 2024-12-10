@@ -240,7 +240,13 @@ namespace raplab{
             });
 
             for (size_t index = 0; index < tmp.size(); ++index) {
-                _agents[tmp[index].first]->set_init_priority(index * gap);
+                _agents[tmp[index].first]->set_init_priority(1-index * gap);
+                if (A_lsrp_debug) {
+                    std::cout << "Agent: " << tmp[index].first <<", ";
+                }
+            }
+            if (A_lsrp_debug) {
+                std::cout << std::endl;
             }
         } else {
             for (int i = 0; i<_agents.size(); i++) {
@@ -413,7 +419,7 @@ namespace raplab{
     }
 
 //A method check if the low priority deadlock situation is going to happened
-//If it is, Return True and starts the asy-PIBT process
+//If it is, Return True and starts the lsrp process
     bool Lsrp::check_potential_deadlock(const long& v, const Agent& ag,
                                             const std::vector<State*>& Sfrom,
                                             const std::vector<State*>& Sto) const {
@@ -584,6 +590,38 @@ namespace raplab{
 
         // Append S_final to policy
         _policy.push_back(S_final);
+    }
+
+
+    void Lsrp::print_path() {
+        for (size_t i = 0; i < _agents.size(); ++i) {
+            std::vector<long> path_nodes = {_Sinit[i]};
+            std::vector<int> path_times = {0};
+            bool wait = false;
+            for (size_t j = 1; j < _policy.size(); ++j) {
+                State* state = _policy[j][i];
+                if (state == _policy[j - 1][i]) {
+                    continue;
+                }
+                if (state->get_p() != state->get_v() && !wait) {
+                    //path_nodes.push_back(state->get_p());
+                    path_nodes.push_back(state->get_v());
+                    //path_times.push_back(state->get_startT());
+                    path_times.push_back(state->get_endT());
+                } else if (state->get_p() == state->get_v()){
+                    wait = true;
+                } else if (state->get_p() != state->get_v() && wait) {
+                    path_nodes.push_back(state->get_p());
+                    path_nodes.push_back(state->get_v());
+                    path_times.push_back(state->get_startT());
+                    path_times.push_back(state->get_endT());
+                    wait = false;
+                }
+            }
+            std::cout<<"Agent: "<<i<<std::endl;
+            std::cout<<path_nodes<<std::endl;
+            std::cout<<path_times<<std::endl;
+        }
     }
 
 // """
@@ -807,7 +845,7 @@ namespace raplab{
         const auto& neighbors = _graph->GetSuccs(agent.get_curr()->get_v());
         C.insert(C.end(), neighbors.begin(), neighbors.end());
 
-        std::shuffle(C.begin(), C.end(), _rng);
+        //std::shuffle(C.begin(), C.end(), _rng);
         std::sort(C.begin(), C.end(), [&](const long& coord1, const long& coord2) {
             return get_h(agent, coord1) < get_h(agent, coord2);
         });
@@ -1118,6 +1156,9 @@ namespace raplab{
                 get_makespan();
                 get_Soc();
                 extract_policy();
+                if (A_lsrp_debug) {
+                    print_path();
+                }
                 return 1;
             }
 
@@ -1175,6 +1216,8 @@ namespace raplab{
         }
         return true;
     }
+
+
 
 
     /* abandoned version   The integration of push_required_possible and  pibt

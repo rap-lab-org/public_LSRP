@@ -303,25 +303,25 @@ int Test_Lsrp_movingai_to_file_with_cyclic_duration() {
 
 int Test_Lsrp_den520d() {
     std::cout << "####### Moving ai test Begin #######" << std::endl;
-    std::string MapPath = "C:/Users/David Zhou/Documents/GitHub/public_LSRP/data/maps/room-64-64-8.map";
-    std::ofstream output_file("C:/Users/David Zhou/Documents/GitHub/public_LSRP/lsrp-room64-baseline1-results.txt");
+    std::string MapPath = "C:/Users/David Zhou/Documents/GitHub/public_LSRP/data/maps/random-32-32-20.map";
+    std::ofstream output_file("C:/Users/David Zhou/Documents/GitHub/public_LSRP/lsrp_swap-room64-results.txt");
 
     if (!output_file.is_open()) {
         std::cerr << "Failed to open the file." << std::endl;
         return -1;
     }
 
-    for (int n = 10; n <= 700; n += 50) {
+    for (int n = 450; n <= 450; n += 50) {
         int success_count = 0;
         output_file << "n: " << n << std::endl;
 
-        for (int i = 1; i <= 25; ++i) {
-            std::string ScenPath = R"(C:/Users/David Zhou/Documents/GitHub/public_LSRP/data/scen/room-64-64-scen-random/room-64-64-8-random-)" + std::to_string(i) + ".scen";
+        for (int i = 1; i <= 20; ++i) {
+            std::string ScenPath = R"(C:/Users/David Zhou/Documents/GitHub/public_LSRP/data/scen/random-32-32-20-scen/random-32-32-20-random-)" + std::to_string(i) + ".scen";
             raplab::Grid2d g;
             std::vector<std::vector<double>> occupancy_grid;
             raplab::LoadMap_MovingAI(MapPath, &occupancy_grid);
             g.SetOccuGridPtr(&occupancy_grid);
-            double time_limit = 30;
+            double time_limit = 60;
 
             std::vector<long> starts;
             std::vector<long> goals;
@@ -353,7 +353,7 @@ int Test_Lsrp_den520d() {
             }
         }
 
-        double success_rate = (success_count / 25.0) * 100;
+        double success_rate = (success_count / 20.0) * 100;
         output_file << "Success rate: " << success_rate << "%" << std::endl;
     }
 
