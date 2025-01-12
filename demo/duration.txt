@@ -1,0 +1,10 @@
+agent1: 0.5
+agent2: 0.3
+agent3: 0.2
+agent4: 0.1
+agent5: 0.4
+agent6: 0.2
+agent7: 0.4
+agent8: 0.4
+agent9: 0.2
+agent10: 0.3

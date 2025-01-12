@@ -1,0 +1,1 @@
+/usr/bin/c++ -std=c++11  -O3 -DNDEBUG -rdynamic CMakeFiles/lsrp.dir/source/main.cpp.o -o lsrp  -Wl,-rpath,/home/david/下载/public_LSRP/build libLSRP.so 
