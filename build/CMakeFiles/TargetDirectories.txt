@@ -1,5 +1,0 @@
-/home/david/下载/public_LSRP/build/CMakeFiles/LSRP.dir
-/home/david/下载/public_LSRP/build/CMakeFiles/lsrp.dir
-/home/david/下载/public_LSRP/build/CMakeFiles/test_toyexample.dir
-/home/david/下载/public_LSRP/build/CMakeFiles/edit_cache.dir
-/home/david/下载/public_LSRP/build/CMakeFiles/rebuild_cache.dir
