@@ -119,7 +119,12 @@ namespace raplab{
     //Lsrp part main function
     Lsrp::Lsrp() {};
 
-    Lsrp::~Lsrp() {};
+    Lsrp::~Lsrp() {
+        for (Agent* agent : _agents) {
+            delete agent;
+        }
+        _agents.clear();
+    };
 
     CostVec Lsrp::GetPlanCost(long nid) {
         CostVec out(_graph->CostDim(), 0);
