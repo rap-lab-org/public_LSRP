@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 2.8.3)
-project(LSRP)
+cmake_minimum_required(VERSION 2.8.12)
+project(PROJ_LSRP)
 
 find_package(Threads REQUIRED)
 
