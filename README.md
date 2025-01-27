@@ -31,15 +31,18 @@ The code is distributed for academic and non-commercial use. THE SOFTWARE IS PRO
 
 ## Installation and Usage
 
-1. Clone this repository;
-2. At the project root, run command `make fast`;
-3. Run the program with the following command:
+1. Clone this repository.
+2. `mkdir build/`
+3. `cmake -DCMAKE_BUILD_TYPE=Release -B build`
+3. `cd build/`
+4. `make`
+5. Run the program with the following command:
    ```sh
    ./lsrp <map_path> <scen_path> <duration_path> <runtime> [swap]
     ```
-   To run the program with 10 agents on the specified map and scenario files, and save the results to `visual.xml` with a maximum runtime of 30 seconds and the swap feature enabled, use the following command:
+   To run the program with 10 agents on the specified map and scenario files, and save the results to `result.xml` with a maximum runtime of 30 seconds and the swap feature enabled, use the following command:
    ```sh
-   ./lsrp ../data/warehouse-10-20-10-2-1.map ../data/warehouse-10-20-10-2-1-random-1.scen ../data/duration.txt 30 swap
+   ./lsrp ../demo/warehouse-10-20-10-2-1.map ../demo/warehouse-10-20-10-2-1-random-1.scen ../demo/duration.txt 30 swap
    ```
     
 
