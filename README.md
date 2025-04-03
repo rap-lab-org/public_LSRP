@@ -5,7 +5,7 @@ This repository provides an implementation of the Loosely Synchronized Rule-Base
 The code is distributed for academic and non-commercial use. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 <p align="center">
-    <img src="https://github.com/rap-lab-org/public_LSRP/tree/main/demo/agent_onehundred.gif" width="600" alt="A 100 agent MAPF-AA instances.">
+    <img src="https://github.com/rap-lab-org/public_LSRP/blob/main/demo/agent_onehundred.gif" width="600" alt="A 100 agent MAPF-AA instances.">
     <p align="center">(Fig 1: A 100 agent MAPF-AA instances.)</p>
 </p>
 
