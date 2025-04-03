@@ -884,7 +884,8 @@ namespace raplab{
         _T_set.insert(0.0);
 
         // Set a timeout limit of 30 seconds
-        std::chrono::seconds timeout_limit(30);
+//        std::chrono::seconds timeout_limit(30);
+        std::chrono::duration<double> timeout_limit(_time_limit);
         auto start_time = std::chrono::steady_clock::now();
         while (true) {
             auto current_time = std::chrono::steady_clock::now();

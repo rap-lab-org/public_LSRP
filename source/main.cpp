@@ -61,7 +61,7 @@ int Test(const std::string& mapPath, const std::string& scenPath, const std::str
     auto soc = planner.re_soc();
     auto makespan = planner.re_makespan();
     auto runtime = planner.GetRuntime();
-    if (runtime <= 30) {
+    if (runtime <= time_limit) {
         std::cout << "Solution found: true" << std::endl;
         std::cout << "Runtime: " <<std::fixed << std::setprecision(3) <<runtime << std::endl;
         std::cout << "Makespan: " <<std::fixed << std::setprecision(2)<<makespan << std::endl;
@@ -161,8 +161,8 @@ std::vector<double> readAgentValues(const std::string& filename) {
     std::ifstream file(filename);
 
     if (!file.is_open()) {
-        std::cerr << "无法打开文件：" << filename << std::endl;
-        return values;  // 返回空vector
+        std::cerr << "Unable to open file：" << filename << std::endl;
+        return values;
     }
 
     std::string line;
