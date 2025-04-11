@@ -70,8 +70,8 @@ This Qt framework-based visualizer allows you to load and display the output fil
 
 ## References
 
-* [1] Zhou, S., Zhao, S., & Ren, Z. (2025). Loosely Synchronized Rule-Based Planning for Multi-Agent Path Finding with Asynchronous Actions. Proceedings of the AAAI Conference on Artificial Intelligence, 39(14), 14763-14770. https://doi.org/10.1609/aaai.v39i14.33618\
-  [[Bibtex](https://shuaizhou302.github.io/publication/zhou-2024-looselysynchronizedrulebasedplanning/cite.bib)][[Paper]([https://arxiv.org/pdf/2412.11678](https://doi.org/10.1609/aaai.v39i14.33618))]
+* [1] Zhou, S., Zhao, S., & Ren, Z. (2025). Loosely Synchronized Rule-Based Planning for Multi-Agent Path Finding with Asynchronous Actions. Proceedings of the AAAI Conference on Artificial Intelligence, 39(14), 14763-14770.\
+  [[Bibtex](https://shuaizhou302.github.io/publication/zhou-2024-looselysynchronizedrulebasedplanning/cite.bib)][[Paper](https://doi.org/10.1609/aaai.v39i14.33618)]
 ## License
 
 This code is distributed under the MIT License. See the LICENSE file for details.
