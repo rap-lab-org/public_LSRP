@@ -64,7 +64,7 @@ int Toyexample() {
         {1, {{edge_hash(1, 2), 0.5}}}
     }; // agent 1 duration = 0.5 at edge (0,1) to (0,2)
     // set time limit
-    double time_limit = 3600;
+    double time_limit = 30;
     // initialize
     raplab::Lsrp planner;
     planner.SetGraphPtr(&g);
