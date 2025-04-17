@@ -22,7 +22,6 @@ The code is distributed for academic and non-commercial use. THE SOFTWARE IS PRO
 
 ## Project Structure
 
-* `data/` - Contains a few input files for the toy examples
 * `demo/` - Contains a few input files for the command example cases
 * `include/` - Contains all header files.
 * `source/` - Contains all source files corresponding to the headers.
