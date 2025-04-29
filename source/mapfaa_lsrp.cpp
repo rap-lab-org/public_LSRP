@@ -716,7 +716,6 @@ namespace raplab{
         const auto& neighbors = _graph->GetSuccs(agent.get_curr()->get_v());
         C.insert(C.end(), neighbors.begin(), neighbors.end());
 
-        std::shuffle(C.begin(), C.end(), _rng);
         std::sort(C.begin(), C.end(), [&](const long& coord1, const long& coord2) {
             return get_h(agent, coord1) < get_h(agent, coord2);
         });
@@ -791,7 +790,6 @@ namespace raplab{
         const auto& neighbors = _graph->GetSuccs(agent.get_curr()->get_v());
         C.insert(C.end(), neighbors.begin(), neighbors.end());
 
-        std::shuffle(C.begin(), C.end(), _rng);
         std::sort(C.begin(), C.end(), [&](const long& coord1, const long& coord2) {
             return get_h(agent, coord1) < get_h(agent, coord2);
         });
