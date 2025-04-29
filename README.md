@@ -43,7 +43,8 @@ The code is distributed for academic and non-commercial use. THE SOFTWARE IS PRO
    ```sh
    ./lsrp ../demo/warehouse-10-20-10-2-1.map ../demo/warehouse-10-20-10-2-1-random-1.scen ../demo/duration.txt 30 swap
    ```
-    
+**Note**: A pseudo random generator is used in the algorithm on the `main` branch. If you prefer a deterministic solver,
+please checkout the `feature/no-rng` branch.
 
 #### Command Line Arguments
 - `<map_path>`: The path to the map file.
