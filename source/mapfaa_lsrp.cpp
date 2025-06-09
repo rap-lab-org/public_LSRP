@@ -334,6 +334,9 @@ namespace raplab{
 
 // return the given duration
     double Lsrp::get_duration(const Agent& agent,long v1, long v2) const {
+        if (v1 == v2) {
+            return 0;
+        }
         auto edge = edge_hash(v1,v2);
         if (!edge_cost.empty() && edge_cost.find(agent.get_id()) != edge_cost.end() && edge_cost.at(agent.get_id()).find(edge) != edge_cost.at(agent.get_id()).end())
         {
@@ -717,7 +720,14 @@ namespace raplab{
         C.insert(C.end(), neighbors.begin(), neighbors.end());
 
         std::sort(C.begin(), C.end(), [&](const long& coord1, const long& coord2) {
-            return get_h(agent, coord1) < get_h(agent, coord2);
+            double val1 = get_duration(agent, Sfrom[agent.get_id()]->get_v(), coord1) + get_h(agent, coord1);
+            double val2 = get_duration(agent, Sfrom[agent.get_id()]->get_v(), coord2) + get_h(agent, coord2);
+            if (val1 != val2) {
+                return val1 < val2;
+            }
+            if (coord1 == agent.get_curr()->get_v()) return false;
+            if (coord2 == agent.get_curr()->get_v()) return true;
+            return false;
         });
 
         if (!bp && highest_pri_agents(agent)) {
@@ -791,7 +801,14 @@ namespace raplab{
         C.insert(C.end(), neighbors.begin(), neighbors.end());
 
         std::sort(C.begin(), C.end(), [&](const long& coord1, const long& coord2) {
-            return get_h(agent, coord1) < get_h(agent, coord2);
+            double val1 = get_duration(agent, Sfrom[agent.get_id()]->get_v(), coord1) + get_h(agent, coord1);
+            double val2 = get_duration(agent, Sfrom[agent.get_id()]->get_v(), coord2) + get_h(agent, coord2);
+            if (val1 != val2) {
+                return val1 < val2;
+            }
+            if (coord1 == agent.get_curr()->get_v()) return false;
+            if (coord2 == agent.get_curr()->get_v()) return true;
+            return false;
         });
         auto ak = swap_required_possible(curr_agents,agent,Sfrom,Sto,C);
         if (ak != nullptr) {
