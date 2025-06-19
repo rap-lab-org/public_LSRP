@@ -753,11 +753,11 @@ namespace raplab{
                 double twait;
                 // std::tie(twait, new_policy) = push_possible(*ag, Sto, Sfrom, curr_agents, tmin2, curr_t, new_constrain_list);
                 twait = _asy_push(*ag, Sto, Sfrom, curr_agents, tmin2, curr_t, constrain_list, true);
-                if (twait == -1) {
-                    constrain_list.erase(
+                constrain_list.erase(
                                 std::remove(constrain_list.begin(), constrain_list.end(), agent.get_curr()->get_v()),
                                 constrain_list.end()
                         );
+                if (twait == -1) {
                     continue;
                 }
 
@@ -842,12 +842,12 @@ namespace raplab{
                     double twait;
                     // std::tie(twait, new_policy) = push_possible(*ag, Sto, Sfrom, curr_agents, tmin2, curr_t, new_constrain_list);
                     twait = _asy_push_swap(*ag, Sto, Sfrom, curr_agents, tmin2, curr_t, constrain_list, true);
-                    if (twait == -1) {
-                        // not push_possible  we go with
-                        constrain_list.erase(
+                    constrain_list.erase(
                                 std::remove(constrain_list.begin(), constrain_list.end(), agent.get_curr()->get_v()),
                                 constrain_list.end()
                         );
+                    if (twait == -1) {
+                        // not push_possible  we go with
                         continue;
                     }
 
