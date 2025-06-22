@@ -709,27 +709,65 @@ namespace raplab{
                        const std::vector<Agent *> &curr_agents, double tmin2, double curr_t, std::vector<long> &constrain_list, bool bp) {
         //abandoned version   The integration of push_required_possible and  pibt
         std::vector<long> C;
+        long vi = agent.get_curr()->get_v();
         if (!bp)
         {
             C = {agent.get_curr()->get_v()};
+            double h_vi = get_h(agent, vi);
+            const auto& neighbors = _graph->GetSuccs(agent.get_curr()->get_v());
+            C.insert(C.end(), neighbors.begin(), neighbors.end());
+            std::shuffle(C.begin(), C.end(), _rng);
+            std::sort(C.begin(), C.end(), [&](const long& v1, const long& v2) {
+                double h1 = get_h(agent, v1);
+                double h2 = get_h(agent, v2);
+
+                // Case 1: h < h_vi
+                if (h1 < h_vi && h2 < h_vi) {
+                    double f1 = h1 + get_duration(agent, Sfrom[agent.get_id()]->get_v(), v1);
+                    double f2 = h2 + get_duration(agent, Sfrom[agent.get_id()]->get_v(), v2);
+                    if (f1 != f2) return f1 < f2;
+                    return v1 < v2;
+                }
+
+                // Case 2: h > h_vi
+                if (h1 > h_vi && h2 > h_vi) {
+                    double f1 = h1 + get_duration(agent, Sfrom[agent.get_id()]->get_v(), v1);
+                    double f2 = h2 + get_duration(agent, Sfrom[agent.get_id()]->get_v(), v2);
+                    if (f1 != f2) return f1 < f2;
+                    return v1 < v2;
+                }
+
+                // Case 3: h == h_vi
+                if (h1 == h_vi && h2 == h_vi) {
+                    if (v1 == vi) return false; // v1 is vi, put it first
+                    if (v2 == vi) return true;  // v2 is vi, put it second
+                    return v1 < v2;             // sort by vertex id
+                }
+
+                // Cross-case ordering
+                if (h1 < h_vi && h2 == h_vi) return true;
+                if (h1 == h_vi && h2 < h_vi) return false;
+                if (h1 > h_vi && h2 == h_vi) return false;
+                if (h1 == h_vi && h2 > h_vi) return true;
+                return h1 < h2;  // fallback
+            });
         } else
         {
             C = {};
+            const auto& neighbors = _graph->GetSuccs(agent.get_curr()->get_v());
+            C.insert(C.end(), neighbors.begin(), neighbors.end());
+            std::shuffle(C.begin(), C.end(), _rng);
+            std::sort(C.begin(), C.end(), [&](const long& coord1, const long& coord2) {
+                double val1 = get_duration(agent, Sfrom[agent.get_id()]->get_v(), coord1) + get_h(agent, coord1);
+                double val2 = get_duration(agent, Sfrom[agent.get_id()]->get_v(), coord2) + get_h(agent, coord2);
+                if (val1 != val2) {
+                    return val1 < val2;
+                }
+                if (coord1 == agent.get_curr()->get_v()) return false;
+                if (coord2 == agent.get_curr()->get_v()) return true;
+                return false;
+            });
         }
-        const auto& neighbors = _graph->GetSuccs(agent.get_curr()->get_v());
-        C.insert(C.end(), neighbors.begin(), neighbors.end());
-
-        std::sort(C.begin(), C.end(), [&](const long& coord1, const long& coord2) {
-            double val1 = get_duration(agent, Sfrom[agent.get_id()]->get_v(), coord1) + get_h(agent, coord1);
-            double val2 = get_duration(agent, Sfrom[agent.get_id()]->get_v(), coord2) + get_h(agent, coord2);
-            if (val1 != val2) {
-                return val1 < val2;
-            }
-            if (coord1 == agent.get_curr()->get_v()) return false;
-            if (coord2 == agent.get_curr()->get_v()) return true;
-            return false;
-        });
-
         if (!bp && highest_pri_agents(agent)) {
             long current_v = agent.get_curr()->get_v();
             auto it = std::find(C.begin(), C.end(), current_v);
@@ -794,26 +832,65 @@ namespace raplab{
                        const std::vector<Agent *> &curr_agents, double tmin2, double curr_t,std::vector<long> &constrain_list, bool bp) {
         //abandoned version   The integration of push_required_possible and  pibt
         std::vector<long> C;
+        long vi = agent.get_curr()->get_v();
         if (!bp)
         {
             C = {agent.get_curr()->get_v()};
+            double h_vi = get_h(agent, vi);
+            const auto& neighbors = _graph->GetSuccs(agent.get_curr()->get_v());
+            C.insert(C.end(), neighbors.begin(), neighbors.end());
+            std::shuffle(C.begin(), C.end(), _rng);
+            std::sort(C.begin(), C.end(), [&](const long& v1, const long& v2) {
+                double h1 = get_h(agent, v1);
+                double h2 = get_h(agent, v2);
+
+                // Case 1: h < h_vi
+                if (h1 < h_vi && h2 < h_vi) {
+                    double f1 = h1 + get_duration(agent, Sfrom[agent.get_id()]->get_v(), v1);
+                    double f2 = h2 + get_duration(agent, Sfrom[agent.get_id()]->get_v(), v2);
+                    if (f1 != f2) return f1 < f2;
+                    return v1 < v2;
+                }
+
+                // Case 2: h > h_vi
+                if (h1 > h_vi && h2 > h_vi) {
+                    double f1 = h1 + get_duration(agent, Sfrom[agent.get_id()]->get_v(), v1);
+                    double f2 = h2 + get_duration(agent, Sfrom[agent.get_id()]->get_v(), v2);
+                    if (f1 != f2) return f1 < f2;
+                    return v1 < v2;
+                }
+
+                // Case 3: h == h_vi
+                if (h1 == h_vi && h2 == h_vi) {
+                    if (v1 == vi) return false; // v1 is vi, put it first
+                    if (v2 == vi) return true;  // v2 is vi, put it second
+                    return v1 < v2;             // sort by vertex id
+                }
+
+                // Cross-case ordering
+                if (h1 < h_vi && h2 == h_vi) return true;
+                if (h1 == h_vi && h2 < h_vi) return false;
+                if (h1 > h_vi && h2 == h_vi) return false;
+                if (h1 == h_vi && h2 > h_vi) return true;
+                return h1 < h2;  // fallback
+            });
         } else
         {
             C = {};
+            const auto& neighbors = _graph->GetSuccs(agent.get_curr()->get_v());
+            C.insert(C.end(), neighbors.begin(), neighbors.end());
+            std::shuffle(C.begin(), C.end(), _rng);
+            std::sort(C.begin(), C.end(), [&](const long& coord1, const long& coord2) {
+                double val1 = get_duration(agent, Sfrom[agent.get_id()]->get_v(), coord1) + get_h(agent, coord1);
+                double val2 = get_duration(agent, Sfrom[agent.get_id()]->get_v(), coord2) + get_h(agent, coord2);
+                if (val1 != val2) {
+                    return val1 < val2;
+                }
+                if (coord1 == agent.get_curr()->get_v()) return false;
+                if (coord2 == agent.get_curr()->get_v()) return true;
+                return false;
+            });
         }
-        const auto& neighbors = _graph->GetSuccs(agent.get_curr()->get_v());
-        C.insert(C.end(), neighbors.begin(), neighbors.end());
-
-        std::sort(C.begin(), C.end(), [&](const long& coord1, const long& coord2) {
-            double val1 = get_duration(agent, Sfrom[agent.get_id()]->get_v(), coord1) + get_h(agent, coord1);
-            double val2 = get_duration(agent, Sfrom[agent.get_id()]->get_v(), coord2) + get_h(agent, coord2);
-            if (val1 != val2) {
-                return val1 < val2;
-            }
-            if (coord1 == agent.get_curr()->get_v()) return false;
-            if (coord2 == agent.get_curr()->get_v()) return true;
-            return false;
-        });
         auto ak = swap_required_possible(curr_agents,agent,Sfrom,Sto,C);
         if (ak != nullptr) {
             std::reverse(C.begin(), C.end());
